@@ -1,11 +1,14 @@
+import { SlashCommandBuilder } from 'discord.js';
 import { Command, Interaction, Module } from '../decorator';
 
 @Module()
 export default class PingModule {
-  @Command({
-    command: 'ping',
-    description: 'Replies with Pong!',
-  })
+  @Command(
+    new SlashCommandBuilder()
+      .setName('ping')
+      .setDescription('Replies with Pong!')
+      .toJSON()
+  )
   ping(interaction: Interaction) {
     interaction.reply('Pong!');
   }

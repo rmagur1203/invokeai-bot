@@ -2,9 +2,12 @@
   "dependencies": {
     "discord.js": "^14.5.0",
     "dotenv": "^16.0.3",
+    "fast-glob": "^3.2.12",
+    "glob": "^8.0.3",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
+    "@types/glob": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^5.24.0",
     "@typescript-eslint/parser": "^5.24.0",
     "eslint": ">=5.16.0",
@@ -14,6 +17,7 @@
     "husky": "^8.0.1",
     "jest": "^28.1.0",
     "lint-staged": "^12.4.1",
+    "nodemon": "^2.0.20",
     "prettier": "2.6.2",
     "rimraf": "^3.0.2",
     "ts-node": "^10.9.1",
@@ -25,7 +29,8 @@
     "prepare": "husky install",
     "prebuild": "rimraf dist",
     "build": "tsc",
-    "start": "ts-node ./src/index.ts"
+    "start": "ts-node ./src/index.ts",
+    "start:dev": "nodemon"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"

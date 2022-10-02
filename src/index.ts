@@ -1,15 +1,36 @@
 import { Client, GatewayIntentBits, REST } from 'discord.js';
-import PingModule from './commands/ping';
 import { Config } from './config';
-import { attachCommands, registCommands } from './decorator/discord';
+import {
+  attachCommands,
+  ModuleInterface,
+  registCommands,
+} from './decorator/discord';
+import path from 'path';
+import glob from 'fast-glob';
+
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const rest = new REST({ version: '10' }).setToken(Config.get('TOKEN'));
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user!.tag}!`);
 
-  registCommands(rest, client.user!.id, [PingModule]);
-  attachCommands(client, [PingModule]);
+  (async () => {
+    const modules = await getModules();
+    registCommands(rest, client.user!.id, modules);
+    attachCommands(client, modules);
+  })();
 });
+
+async function getModules() {
+  return await glob('commands/**/*.{ts,js}', {
+    cwd: __dirname,
+  }).then((files) => {
+    return Promise.all(
+      files.map(async (file) => {
+        return require(path.join(__dirname, file)).default as ModuleInterface;
+      })
+    );
+  });
+}
 
 client.login(Config.get('TOKEN'));

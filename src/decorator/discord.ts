@@ -4,6 +4,7 @@ import {
   Client,
   MessageContextMenuCommandInteraction,
   REST,
+  RESTPostAPIApplicationCommandsJSONBody,
   Routes,
   UserContextMenuCommandInteraction,
 } from 'discord.js';
@@ -15,6 +16,8 @@ enum MetadataKeys {
   command = 'command',
   // eslint-disable-next-line no-unused-vars
   description = 'description',
+  // eslint-disable-next-line no-unused-vars
+  body = 'body',
 }
 
 export function registCommands(
@@ -22,48 +25,39 @@ export function registCommands(
   userID: string,
   modules: ModuleInterface[]
 ) {
+  const commands: any[] = [];
   for (const module of modules) {
-    const commands = Object.keys(module.prototype)
-      .map((key) => {
-        const command = Reflect.getMetadata(
-          MetadataKeys.command,
-          module.prototype,
-          key
-        );
-        const description = Reflect.getMetadata(
-          MetadataKeys.description,
-          module.prototype,
-          key
-        );
-        if (command && description) {
-          return {
-            name: command,
-            description,
-          };
-        }
-      })
-      .filter((x) => x);
-    rest.put(Routes.applicationCommands(userID), {
-      body: commands,
-    });
+    for (const key of Object.keys(module.prototype) as string[]) {
+      const body = Reflect.getMetadata(
+        MetadataKeys.body,
+        module.prototype,
+        key
+      ) as RESTPostAPIApplicationCommandsJSONBody;
+      if (body) {
+        commands.push(body);
+      }
+    }
   }
+  rest.put(Routes.applicationCommands(userID), {
+    body: commands,
+  });
 }
 
 export function attachCommands(client: Client, modules: ModuleInterface[]) {
   for (const module of modules) {
     Object.keys(module.prototype).forEach((key) => {
       const handler = module.prototype[key] as CommandHandler;
-      const command = Reflect.getMetadata(
-        MetadataKeys.command,
+      const body = Reflect.getMetadata(
+        MetadataKeys.body,
         module.prototype,
         key
-      );
+      ) as RESTPostAPIApplicationCommandsJSONBody;
 
       client.on('interactionCreate', async (interaction) => {
         if (!interaction.isCommand()) return;
         if (!interaction.isRepliable()) return;
 
-        if (interaction.commandName === command) {
+        if (interaction.commandName === body.name) {
           handler(interaction);
         }
       });
@@ -84,35 +78,23 @@ export type Interaction<T extends CacheType = CacheType> =
 
 export function Module() {
   return function (target: any) {
-    target.prototype.commands = [];
+    // target.prototype.commands = [];
     Object.keys(target.prototype).forEach((key) => {
-      const command = Reflect.getMetadata(
-        MetadataKeys.command,
-        target.prototype,
-        key
-      );
-
-      if (command) {
-        target.prototype.commands.push(command);
-      }
+      // const body = Reflect.getMetadata(
+      //   MetadataKeys.body,
+      //   target.prototype,
+      //   key
+      // ) as RESTPostAPIApplicationCommandsJSONBody;
+      //
+      // if (body.name) {
+      //   target.prototype.commands.push(body.name);
+      // }
     });
   };
 }
 
-export function Command({
-  command,
-  description,
-}: {
-  command: string;
-  description: string;
-}) {
+export function Command(body: RESTPostAPIApplicationCommandsJSONBody) {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-    Reflect.defineMetadata(MetadataKeys.command, command, target, propertyKey);
-    Reflect.defineMetadata(
-      MetadataKeys.description,
-      description,
-      target,
-      propertyKey
-    );
+    Reflect.defineMetadata(MetadataKeys.body, body, target, propertyKey);
   };
 }
