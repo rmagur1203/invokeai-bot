@@ -53,14 +53,15 @@ export function attachCommands(client: Client, modules: ModuleInterface[]) {
         key
       ) as RESTPostAPIApplicationCommandsJSONBody;
 
-      client.on('interactionCreate', async (interaction) => {
-        if (!interaction.isCommand()) return;
-        if (!interaction.isRepliable()) return;
+      if (body) {
+        client.on('interactionCreate', async (interaction) => {
+          if (!interaction.isCommand()) return;
 
-        if (interaction.commandName === body.name) {
-          handler(interaction);
-        }
-      });
+          if (interaction.commandName === body.name) {
+            handler.bind(new module())(interaction);
+          }
+        });
+      }
     });
   }
 }

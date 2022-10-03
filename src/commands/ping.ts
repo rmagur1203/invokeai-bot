@@ -1,15 +1,19 @@
+import { MemoryCache } from 'cache-manager';
 import { SlashCommandBuilder } from 'discord.js';
-import { Command, Interaction, Module } from '../decorator';
+import { Command, Inject, Interaction, Module } from '../decorator';
 
 @Module()
 export default class PingModule {
+  @Inject('CACHE_MANAGER') public readonly $store!: MemoryCache;
+
   @Command(
     new SlashCommandBuilder()
       .setName('ping')
       .setDescription('Replies with Pong!')
       .toJSON()
   )
-  ping(interaction: Interaction) {
-    interaction.reply('Pong!');
+  async ping(interaction: Interaction) {
+    interaction.reply(`Pong! ${(await this.$store.get('ping')) || 'no cache'}`);
+    await this.$store.set('ping', new Date().getTime());
   }
 }
