@@ -34,6 +34,7 @@
     "prepare": "husky install",
     "prebuild": "rimraf dist",
     "build": "tsc",
+    "build:proto": "buf generate",
     "start": "ts-node ./src/index.ts",
     "start:dev": "nodemon"
   },
