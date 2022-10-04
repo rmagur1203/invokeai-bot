@@ -1,5 +1,6 @@
 import * as cacheManager from 'cache-manager';
 import { ModuleInterface } from './discord';
+import { injectDependency } from './inject';
 
 export async function registCacheManager(
   store: any | 'memory',
@@ -7,7 +8,5 @@ export async function registCacheManager(
   modules: ModuleInterface[]
 ) {
   const redisCache = await cacheManager.caching(store, storeOptions);
-  for (const module of modules) {
-    Reflect.defineMetadata('CACHE_MANAGER', redisCache, module.prototype);
-  }
+  injectDependency('CACHE_MANAGER', redisCache, modules);
 }
