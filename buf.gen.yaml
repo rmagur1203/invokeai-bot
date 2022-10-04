@@ -1,0 +1,7 @@
+version: v1
+plugins:
+  - remote: buf.build/stephenh/plugins/ts-proto
+    out: src/grpc
+    opt:
+      - outputServices=grpc-js
+      - fileSuffix=.proto
