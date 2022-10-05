@@ -33,7 +33,7 @@ client.on('ready', () => {
 });
 
 async function getModules() {
-  return await glob('commands/**/([a-zA-Z-_])+.{ts,js}', {
+  return await glob('commands/**/([a-zA-Z-_])+.module.{ts,js}', {
     cwd: __dirname,
   }).then((files) => {
     return Promise.all(
