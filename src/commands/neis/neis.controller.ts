@@ -1,12 +1,17 @@
 import {
   ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   ChatInputCommandInteraction,
   EmbedBuilder,
   SelectMenuBuilder,
 } from 'discord.js';
-import { NeisService } from './neis.service';
+import NeisService from './neis.service';
 import { DateTime } from 'luxon';
-import { Information } from '../../grpc/gen/neis.proto';
+import { Information, Lunch } from '../../grpc/gen/neis.proto';
+import { Inject } from '../../decorator';
+import { MemoryCache } from 'cache-manager';
+import ms from 'ms';
 
 function schoolToEmbed(school: Information) {
   const embed = new EmbedBuilder()
@@ -107,13 +112,51 @@ function schoolToEmbed(school: Information) {
       },
     ])
     .setTimestamp(
-      DateTime.fromFormat(school.modifiedDate, 'yyyyMMdd').toJSDate()
+      DateTime.fromFormat(school.modifiedDate, 'yyyyMMdd', {
+        zone: 'Asia/Seoul',
+      }).toJSDate()
     );
   return embed;
 }
 
+function lunchToEmbed(lunch: Lunch) {
+  const date = DateTime.fromFormat(lunch.date, 'yyyy-MM-dd').toLocaleString(
+    {
+      month: 'long',
+      day: 'numeric',
+    },
+    {
+      locale: 'ko-KR',
+    }
+  );
+
+  return new EmbedBuilder()
+    .setTitle(`${lunch.schoolName} 급식`)
+    .setTimestamp(
+      DateTime.fromFormat(lunch.date, 'yyyy-MM-dd', {
+        zone: 'Asia/Seoul',
+      }).toJSDate()
+    )
+    .addFields(
+      {
+        name: `${date} ${lunch.mealName}`,
+        value: lunch.dishName.replace(/<br\/>/g, '\n'),
+        inline: true,
+      },
+      {
+        name: '영양 정보',
+        value: lunch.nutritionInfo.replace(/<br\/>/g, '\n'),
+        inline: true,
+      }
+    )
+    .setFooter({
+      text: lunch.calorieInfo,
+    });
+}
+
 export default class NeisController {
   private readonly neisService = new NeisService();
+  @Inject('CACHE_MANAGER') private readonly $store!: MemoryCache;
 
   async schoolInfo(interaction: ChatInputCommandInteraction): Promise<void> {
     const name = interaction.options.getString('name')!;
@@ -122,7 +165,7 @@ export default class NeisController {
     const row = new ActionRowBuilder<SelectMenuBuilder>().addComponents(
       new SelectMenuBuilder()
         .setCustomId('select_school')
-        .setPlaceholder('Nothing selected')
+        .setPlaceholder('선택해주세요.')
         .addOptions(
           res.schools.map((school, index) => ({
             label: school.name,
@@ -132,19 +175,74 @@ export default class NeisController {
         )
     );
 
-    const message = await (
+    let message = await (
       await interaction.reply({
         components: [row],
         ephemeral: true,
       })
     ).awaitMessageComponent();
+
     if (!message.isSelectMenu() || message.customId !== 'select_school') return;
+
+    await message.deferUpdate();
 
     const school = res.schools[Number(message.values[0])];
 
-    interaction.editReply({
-      embeds: [schoolToEmbed(school)],
-      components: [],
+    const saveButton = new ButtonBuilder()
+      .setCustomId('save_school')
+      .setLabel('학교 정보 저장')
+      .setStyle(ButtonStyle.Primary);
+
+    message = await (
+      await interaction.editReply({
+        embeds: [schoolToEmbed(school)],
+        components: [
+          new ActionRowBuilder<ButtonBuilder>().addComponents(saveButton),
+        ],
+      })
+    ).awaitMessageComponent();
+
+    if (!message.isButton() || message.customId !== 'save_school') return;
+
+    const id = interaction.user.id;
+    this.$store.set(
+      `${id}:school`,
+      {
+        districtCode: school.districtCode,
+        code: school.code,
+      },
+      ms('1y')
+    );
+
+    message.reply({
+      content: '학교 정보가 저장되었습니다.',
+      ephemeral: true,
+    });
+  }
+
+  async schoolMeal(interaction: ChatInputCommandInteraction): Promise<void> {
+    const id = interaction.user.id;
+    const school = await this.$store.get<{
+      districtCode: string;
+      code: string;
+    }>(`${id}:school`);
+
+    if (!school) {
+      await interaction.reply({
+        content: '학교 정보가 없습니다. 먼저 학교 정보를 저장해주세요.',
+        ephemeral: true,
+      });
+      return;
+    }
+
+    const res = await this.neisService.getSchoolMeal(
+      school.districtCode,
+      school.code
+    );
+    const lunch = res.lunch!;
+
+    await interaction.reply({
+      embeds: [lunchToEmbed(lunch)],
     });
   }
 }

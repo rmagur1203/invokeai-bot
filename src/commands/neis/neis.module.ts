@@ -28,13 +28,6 @@ export default class NeisModule {
           .setName('meal')
           .setDescription('Get school meal information.')
           .setDescriptionLocalization('ko', '학교 급식 정보를 가져옵니다.')
-          .addStringOption((option) =>
-            option
-              .setName('name')
-              .setDescription('School name')
-              .setDescriptionLocalization('ko', '학교 이름')
-              .setRequired(true)
-          )
       )
       .toJSON()
   )
@@ -44,7 +37,7 @@ export default class NeisModule {
         await this.controller.schoolInfo(interaction);
         break;
       case 'meal':
-        // await this.controller.schoolMeal(interaction);
+        await this.controller.schoolMeal(interaction);
         break;
     }
   }
