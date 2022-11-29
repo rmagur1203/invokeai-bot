@@ -73,6 +73,10 @@ export default class SocketIOApi {
     });
   }
 
+  public requestModelChange(model: string) {
+    this.emit('requestModelChange', model);
+  }
+
   public requestImages(type: 'user' | 'result'): Promise<GalleryImages> {
     return new Promise((resolve, reject) => {
       this.emit('requestImages', type);
@@ -177,6 +181,11 @@ export interface GenerationParameters {
   seamless: boolean;
   hires_fix: boolean;
   variation_amount: number;
+}
+
+export interface ModelChanged {
+  model_list: { [x: string]: Model };
+  model_name: string;
 }
 
 export interface SystemConfig {

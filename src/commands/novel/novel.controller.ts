@@ -1,4 +1,3 @@
-import { createHash } from 'crypto';
 import {
   ActionRowBuilder,
   ChatInputCommandInteraction,
@@ -10,10 +9,6 @@ import {
 import ms from 'ms';
 import { HEIGHTS, WIDTHS } from '../../invokeai';
 import SocketIOApiWrapper, { GenerationConfig } from '../../invokeai/wrapper';
-
-function sha256(str: string) {
-  return createHash('sha256').update(str).digest('hex');
-}
 
 export default class NovelController {
   private readonly wrapper = new SocketIOApiWrapper('http://plebea.com:9090/');
@@ -76,16 +71,31 @@ export default class NovelController {
       prompt: promptValue.value,
     });
 
-    const result = await this.api.onceGenerationResultAsync();
+    if (this.options.images && this.options.images > 1) {
+      const images = [];
+      for (let i = 0; i < this.options.images; i++) {
+        const result = await this.api.onceGenerationResultAsync();
+        images.push({
+          name: `image${i}.png`,
+          attachment: result.url,
+        });
+      }
+      await modal.editReply({
+        content: '',
+        files: images,
+      });
+    } else {
+      const result = await this.api.onceGenerationResultAsync();
 
-    await modal.editReply({
-      files: [
-        {
-          name: 'result.png',
-          attachment: this.wrapper.getImage(result.url),
-        },
-      ],
-    });
+      await modal.editReply({
+        files: [
+          {
+            name: 'result.png',
+            attachment: this.wrapper.getImage(result.url),
+          },
+        ],
+      });
+    }
   }
 
   public async config(interaction: ChatInputCommandInteraction) {
