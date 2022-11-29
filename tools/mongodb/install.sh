@@ -1,0 +1,1 @@
+docker run --name mongodb -v ~/discord-bot-example/tmp/mongodb:/data/db -d -p 27017:27017 mongo
