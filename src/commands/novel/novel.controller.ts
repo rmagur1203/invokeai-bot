@@ -50,7 +50,9 @@ export default class NovelController {
 
     const modal = await interaction
       .awaitModalSubmit({
-        filter: (modal) => modal.customId === 'novel_modal',
+        filter: (modal) =>
+          modal.customId === 'novel_modal' &&
+          modal.user.id === interaction.user.id,
         time: ms('5m'),
       })
       .catch(() => void interaction.reply('시간이 초과되었습니다.'));
