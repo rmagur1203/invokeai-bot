@@ -75,6 +75,9 @@ export default class NovelController {
       const images = [];
       for (let i = 0; i < this.options.images; i++) {
         const result = await this.api.onceGenerationResultAsync();
+        await modal.editReply({
+          content: `이미지 ${i + 1} / ${this.options.images} 생성 중...`,
+        });
         images.push({
           name: `image${i}.png`,
           attachment: this.wrapper.getImage(result.url),
