@@ -17,12 +17,12 @@ export default class NovelModule {
         subcommand
           .setName('config')
           .setDescription('옵션을 설정합니다.')
-          // .addNumberOption((option) =>
-          //   option
-          //     .setName('images')
-          //     .setDescription('생성할 이미지의 개수입니다.')
-          //     .setRequired(false)
-          // )
+          .addNumberOption((option) =>
+            option
+              .setName('images')
+              .setDescription('생성할 이미지의 개수입니다.')
+              .setRequired(false)
+          )
           .addNumberOption((option) =>
             option
               .setName('steps')
