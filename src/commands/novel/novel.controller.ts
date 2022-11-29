@@ -68,8 +68,6 @@ export default class NovelController {
     if (this.isProcessing)
       return modal.editReply('이미 생성 중입니다. 잠시 후 다시 시도해주세요.');
 
-    console.log(this.options);
-
     await this.wrapper.generate({
       ...this.options,
       prompt: promptValue.value,
