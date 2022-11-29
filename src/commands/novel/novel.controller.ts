@@ -41,9 +41,11 @@ export default class NovelController {
       prompt
     );
 
+    const id = Math.random().toString(36).substring(7);
+
     await interaction.showModal(
       new ModalBuilder()
-        .setCustomId('novel_modal')
+        .setCustomId(`novel_modal_${id}`)
         .setTitle('Novel')
         .addComponents(promptRow)
     );
@@ -51,7 +53,7 @@ export default class NovelController {
     const modal = await interaction
       .awaitModalSubmit({
         filter: (modal) =>
-          modal.customId === 'novel_modal' &&
+          modal.customId === `novel_modal_${id}` &&
           modal.user.id === interaction.user.id,
         time: ms('5m'),
       })
