@@ -77,7 +77,7 @@ export default class NovelController {
         const result = await this.api.onceGenerationResultAsync();
         images.push({
           name: `image${i}.png`,
-          attachment: result.url,
+          attachment: this.wrapper.getImage(result.url),
         });
       }
       await modal.editReply({
