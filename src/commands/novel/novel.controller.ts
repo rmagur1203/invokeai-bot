@@ -119,20 +119,13 @@ export default class NovelController {
   public async live(interaction: ChatInputCommandInteraction) {
     await interaction.reply('생성 중입니다...');
 
-    let before = '';
     this.api.onIntermediateResult((result) => {
       if (!interaction.isRepliable()) return;
-
-      const hash = sha256(result.url);
-
-      if (before === hash) return;
-
-      before = hash;
       interaction.editReply({
         content: '',
         files: [
           {
-            name: `${hash}.png`,
+            name: `intermediate.png`,
             attachment: result.isBase64
               ? Buffer.from(result.url.split(',')[1], 'base64')
               : this.wrapper.getImage(result.url),
