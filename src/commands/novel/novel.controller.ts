@@ -25,6 +25,9 @@ export default class NovelController {
     this.api.onProgressUpdate((progress) => {
       this.isProcessing = progress.isProcessing;
     });
+    this.api.onProcessingCanceled(() => {
+      this.isProcessing = false;
+    });
   }
 
   public async invoke(interaction: ChatInputCommandInteraction) {
