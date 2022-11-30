@@ -1,5 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { Command, Module } from '../../decorator';
+import { HEIGHTS, WIDTHS } from '../../invokeai';
 import NovelController from './novel.controller';
 
 @Module()
@@ -33,12 +34,24 @@ export default class NovelModule {
             option
               .setName('width')
               .setDescription('이미지의 가로 크기입니다.')
+              .setChoices(
+                ...WIDTHS.map((width) => ({
+                  name: width.toString(),
+                  value: width,
+                })).slice(0, 25)
+              )
               .setRequired(false)
           )
           .addNumberOption((option) =>
             option
               .setName('height')
               .setDescription('이미지의 세로 크기입니다.')
+              .setChoices(
+                ...HEIGHTS.map((width) => ({
+                  name: width.toString(),
+                  value: width,
+                })).slice(0, 25)
+              )
               .setRequired(false)
           )
           .addNumberOption((option) =>
