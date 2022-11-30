@@ -135,19 +135,19 @@ export default class NovelController {
       {
         name: 'Images',
         value: (
-          this.options.images || DefaultGenerationConfig.images
+          this.options.images ?? DefaultGenerationConfig.images
         ).toString(),
         inline: true,
       },
       {
         name: 'Steps',
-        value: (this.options.steps || DefaultGenerationConfig.steps).toString(),
+        value: (this.options.steps ?? DefaultGenerationConfig.steps).toString(),
         inline: true,
       },
       {
         name: 'CFG Scale',
         value: (
-          this.options.cfg_scale || DefaultGenerationConfig.cfg_scale
+          this.options.cfg_scale ?? DefaultGenerationConfig.cfg_scale
         ).toString(),
         inline: true,
       },
@@ -170,7 +170,7 @@ export default class NovelController {
       },
       {
         name: 'Seed',
-        value: (this.options.seed ?? 0).toString(),
+        value: (this.options.seed || 'auto').toString(),
       },
       {
         name: 'High Res Optimization',
