@@ -363,7 +363,7 @@ export default class NovelController {
           filter: (i) =>
             i.customId === `gallery_next_${id}` &&
             i.user.id === interaction.user.id,
-          time: ms('10s'),
+          time: ms('1h'),
         })
         .on('collect', async (i) => {
           await i.deferUpdate();
