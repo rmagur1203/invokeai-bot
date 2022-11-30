@@ -74,6 +74,12 @@ export default class NovelModule {
               )
               .setRequired(false)
           )
+          .addBooleanOption((option) =>
+            option
+              .setName('gui')
+              .setDescription('GUI를 사용합니다.')
+              .setRequired(false)
+          )
       )
       .addSubcommand((subcommand) =>
         subcommand
@@ -83,16 +89,24 @@ export default class NovelModule {
       .toJSON()
   )
   async novel(interaction: ChatInputCommandInteraction) {
-    switch (interaction.options.getSubcommand()) {
-      case 'invoke':
-        await NovelModule.controller.invoke(interaction);
-        break;
-      case 'config':
-        await NovelModule.controller.config(interaction);
-        break;
-      case 'live':
-        await NovelModule.controller.live(interaction);
-        break;
+    try {
+      switch (interaction.options.getSubcommand()) {
+        case 'invoke':
+          await NovelModule.controller.invoke(interaction);
+          break;
+        case 'config':
+          await NovelModule.controller.config(interaction);
+          break;
+        case 'live':
+          await NovelModule.controller.live(interaction);
+          break;
+      }
+    } catch (err) {
+      console.error(err);
+      await interaction.reply({
+        content: '오류가 발생했습니다.',
+        ephemeral: true,
+      });
     }
   }
 }

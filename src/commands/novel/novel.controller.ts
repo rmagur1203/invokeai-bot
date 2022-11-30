@@ -84,7 +84,7 @@ export default class NovelController {
       for (let i = 0; i < this.options.images; i++) {
         await modal.editReply({
           content: `이미지 ${i + 1} / ${this.options.images} 생성 중...`,
-          files: images,
+          files: [...images].slice(0, 10),
         });
         const result = await this.api.onceGenerationResultAsync();
         images.push({
@@ -93,8 +93,9 @@ export default class NovelController {
         });
       }
       await modal.editReply({
-        content: '',
-        files: images,
+        content:
+          images.length > 10 ? '이미지가 너무 많아 10개만 표시합니다.' : '',
+        files: images.slice(0, 10),
       });
     } else {
       const result = await this.api.onceGenerationResultAsync();
@@ -118,19 +119,151 @@ export default class NovelController {
     const cfgScale = interaction.options.getNumber('cfg_scale');
     const seed = interaction.options.getNumber('seed');
     const highres = interaction.options.getBoolean('highres');
+    const gui = interaction.options.getBoolean('gui');
 
-    if (width && WIDTHS.includes(width as any))
-      this.options.width = width as any;
-    if (height && HEIGHTS.includes(height as any))
-      this.options.height = height as any;
-    if (steps) this.options.steps = steps;
-    if (images) this.options.images = images;
-    if (cfgScale) this.options.cfg_scale = cfgScale;
-    if (seed) {
-      if (seed == 0) this.options.seed = undefined;
-      else this.options.seed = seed;
+    if (gui) {
+      const width = new TextInputBuilder()
+        .setCustomId('novel_modal_width')
+        .setLabel('너비')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setPlaceholder('기본값: 512');
+      const widthRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+        width
+      );
+
+      const height = new TextInputBuilder()
+        .setCustomId('novel_modal_height')
+        .setLabel('높이')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setPlaceholder('기본값: 512');
+      const heightRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+        height
+      );
+
+      const steps = new TextInputBuilder()
+        .setCustomId('novel_modal_steps')
+        .setLabel('스텝')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setPlaceholder('기본값: 50');
+      const stepsRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+        steps
+      );
+
+      const images = new TextInputBuilder()
+        .setCustomId('novel_modal_images')
+        .setLabel('이미지 수')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setPlaceholder('기본값: 1');
+      const imagesRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+        images
+      );
+
+      const cfgScale = new TextInputBuilder()
+        .setCustomId('novel_modal_cfg_scale')
+        .setLabel('cfg_scale')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setPlaceholder('기본값: 7.5');
+      const cfgScaleRow =
+        new ActionRowBuilder<TextInputBuilder>().addComponents(cfgScale);
+
+      const seed = new TextInputBuilder()
+        .setCustomId('novel_modal_seed')
+        .setLabel('시드')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setPlaceholder('기본값: 랜덤');
+      const seedRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+        seed
+      );
+
+      const highres = new TextInputBuilder()
+        .setCustomId('novel_modal_highres')
+        .setLabel('highres')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setPlaceholder('기본값: true');
+
+      const highresRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+        highres
+      );
+
+      const id = Math.random().toString(36).substring(7);
+
+      await interaction.showModal(
+        new ModalBuilder()
+          .setCustomId(`novel_config_${id}`)
+          .setTitle('Novel Config')
+          .addComponents(
+            widthRow,
+            heightRow,
+            stepsRow,
+            imagesRow,
+            cfgScaleRow,
+            seedRow,
+            highresRow
+          )
+      );
+
+      const modal = await interaction
+        .awaitModalSubmit({
+          filter: (m) =>
+            m.customId === `novel_config_${id}` &&
+            m.user.id === interaction.user.id,
+          time: ms('1m'),
+        })
+        .catch(() => void interaction.reply('시간이 초과되었습니다.'));
+      if (!modal) return;
+
+      const widthValue = Number(
+        modal.fields.getTextInputValue('novel_modal_width')
+      );
+      const heightValue = Number(
+        modal.fields.getTextInputValue('novel_modal_height')
+      );
+      const stepsValue = Number(
+        modal.fields.getTextInputValue('novel_modal_steps')
+      );
+      const imagesValue = Number(
+        modal.fields.getTextInputValue('novel_modal_images')
+      );
+      const cfgScaleValue = Number(
+        modal.fields.getTextInputValue('novel_modal_cfg_scale')
+      );
+      const seedValue = Number(
+        modal.fields.getTextInputValue('novel_modal_seed')
+      );
+      const highresValue = Boolean(
+        modal.fields.getTextInputValue('novel_modal_highres') || 'true'
+      );
+
+      if (widthValue && WIDTHS.includes(widthValue as any))
+        this.options.width = widthValue as any;
+      if (heightValue && HEIGHTS.includes(heightValue as any))
+        this.options.height = heightValue as any;
+      if (stepsValue) this.options.steps = stepsValue;
+      if (imagesValue) this.options.images = imagesValue;
+      if (cfgScaleValue) this.options.cfg_scale = cfgScaleValue;
+      if (seedValue) this.options.seed = seedValue;
+      this.options.hires_fix = highresValue;
+    } else {
+      if (width && WIDTHS.includes(width as any))
+        this.options.width = width as any;
+      if (height && HEIGHTS.includes(height as any))
+        this.options.height = height as any;
+      if (steps) this.options.steps = steps;
+      if (images) this.options.images = images;
+      if (cfgScale) this.options.cfg_scale = cfgScale;
+      if (seed) {
+        if (seed == 0) this.options.seed = undefined;
+        else this.options.seed = seed;
+      }
+      if (highres) this.options.hires_fix = highres;
     }
-    if (highres) this.options.hires_fix = highres;
 
     const embed = new EmbedBuilder().addFields(
       {
