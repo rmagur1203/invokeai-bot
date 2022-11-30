@@ -319,7 +319,7 @@ export default class NovelController {
       const mtime = interaction.options.getNumber('mtime', false);
       const count = interaction.options.getNumber('count', false) ?? 10;
 
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply();
 
       const images = await this.wrapper.getImages('result', mtime ?? undefined);
       const embed = new EmbedBuilder()
