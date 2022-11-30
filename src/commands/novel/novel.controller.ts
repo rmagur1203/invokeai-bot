@@ -120,6 +120,7 @@ export default class NovelController {
     const seed = interaction.options.getNumber('seed');
     const highres = interaction.options.getBoolean('highres');
     const gui = interaction.options.getBoolean('gui');
+    let modal = null;
 
     if (gui) {
       const width = new TextInputBuilder()
@@ -152,16 +153,6 @@ export default class NovelController {
         steps
       );
 
-      const images = new TextInputBuilder()
-        .setCustomId('novel_modal_images')
-        .setLabel('이미지 수')
-        .setStyle(TextInputStyle.Short)
-        .setRequired(false)
-        .setPlaceholder('기본값: 1');
-      const imagesRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
-        images
-      );
-
       const cfgScale = new TextInputBuilder()
         .setCustomId('novel_modal_cfg_scale')
         .setLabel('cfg_scale')
@@ -181,35 +172,16 @@ export default class NovelController {
         seed
       );
 
-      const highres = new TextInputBuilder()
-        .setCustomId('novel_modal_highres')
-        .setLabel('highres')
-        .setStyle(TextInputStyle.Short)
-        .setRequired(false)
-        .setPlaceholder('기본값: true');
-
-      const highresRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
-        highres
-      );
-
       const id = Math.random().toString(36).substring(7);
 
       await interaction.showModal(
         new ModalBuilder()
           .setCustomId(`novel_config_${id}`)
           .setTitle('Novel Config')
-          .addComponents(
-            widthRow,
-            heightRow,
-            stepsRow,
-            imagesRow,
-            cfgScaleRow,
-            seedRow,
-            highresRow
-          )
+          .addComponents(widthRow, heightRow, stepsRow, cfgScaleRow, seedRow)
       );
 
-      const modal = await interaction
+      modal = await interaction
         .awaitModalSubmit({
           filter: (m) =>
             m.customId === `novel_config_${id}` &&
@@ -228,17 +200,11 @@ export default class NovelController {
       const stepsValue = Number(
         modal.fields.getTextInputValue('novel_modal_steps')
       );
-      const imagesValue = Number(
-        modal.fields.getTextInputValue('novel_modal_images')
-      );
       const cfgScaleValue = Number(
         modal.fields.getTextInputValue('novel_modal_cfg_scale')
       );
       const seedValue = Number(
         modal.fields.getTextInputValue('novel_modal_seed')
-      );
-      const highresValue = Boolean(
-        modal.fields.getTextInputValue('novel_modal_highres') || 'true'
       );
 
       if (widthValue && WIDTHS.includes(widthValue as any))
@@ -246,10 +212,8 @@ export default class NovelController {
       if (heightValue && HEIGHTS.includes(heightValue as any))
         this.options.height = heightValue as any;
       if (stepsValue) this.options.steps = stepsValue;
-      if (imagesValue) this.options.images = imagesValue;
       if (cfgScaleValue) this.options.cfg_scale = cfgScaleValue;
       if (seedValue) this.options.seed = seedValue;
-      this.options.hires_fix = highresValue;
     } else {
       if (width && WIDTHS.includes(width as any))
         this.options.width = width as any;
@@ -314,11 +278,19 @@ export default class NovelController {
       }
     );
 
-    await interaction.reply({
-      content: '옵션을 설정했습니다.',
-      embeds: [embed],
-      ephemeral: true,
-    });
+    if (gui && modal) {
+      await modal.reply({
+        content: '옵션을 설정했습니다.',
+        embeds: [embed],
+        ephemeral: true,
+      });
+    } else {
+      await interaction.reply({
+        content: '옵션을 설정했습니다.',
+        embeds: [embed],
+        ephemeral: true,
+      });
+    }
   }
 
   public async live(interaction: ChatInputCommandInteraction) {
@@ -338,5 +310,46 @@ export default class NovelController {
         ],
       });
     });
+  }
+
+  public async gallery(interaction: ChatInputCommandInteraction) {
+    try {
+      const mtime = interaction.options.getNumber('mtime', false);
+      const count = interaction.options.getNumber('count', false) ?? 10;
+
+      await interaction.deferReply({ ephemeral: true });
+
+      const images = await this.wrapper.getImages('result', mtime ?? undefined);
+      const embed = new EmbedBuilder()
+        .setTitle('Gallery')
+        .setDescription(`이미지를 클릭하면 원본 이미지를 볼 수 있습니다.`)
+        .setFooter({
+          text: `mtime ${images.images.slice(count - 1, count)[0].mtime}`,
+        });
+
+      await interaction
+        .editReply({
+          embeds: [embed],
+          files: images.images.slice(0, count).map((image) => ({
+            name:
+              image.metadata.image.prompt
+                .splice(0, 5)
+                .map((p) => p.prompt)
+                .join(' ') + '.png',
+            attachment: this.wrapper.getImage(image.url),
+          })),
+        })
+        .catch(
+          () =>
+            void interaction.editReply(
+              '이미지를 업로드하기에 크기가 너무 큽니다. 이미지 수를 줄여주세요.'
+            )
+        );
+    } catch (error) {
+      console.error(error);
+      await interaction.editReply({
+        content: '오류가 발생했습니다.',
+      });
+    }
   }
 }

@@ -21,8 +21,8 @@ export default class SocketIOApiWrapper {
     return await this.api.requestSystemConfig();
   }
 
-  public async getImages(type: 'user' | 'result'): Promise<any> {
-    return await this.api.requestImages(type);
+  public async getImages(type: 'user' | 'result', mtime?: number) {
+    return await this.api.requestImages(type, mtime);
   }
 
   public getImage(path: string): string {

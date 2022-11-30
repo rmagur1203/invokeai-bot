@@ -77,9 +77,12 @@ export default class SocketIOApi {
     this.emit('requestModelChange', model);
   }
 
-  public requestImages(type: 'user' | 'result'): Promise<GalleryImages> {
+  public requestImages(
+    type: 'user' | 'result',
+    mtime?: number
+  ): Promise<GalleryImages> {
     return new Promise((resolve, reject) => {
-      this.emit('requestImages', type);
+      this.emit('requestImages', type, mtime);
 
       this.on('galleryImages', (images) => {
         if (images.category == type) {
