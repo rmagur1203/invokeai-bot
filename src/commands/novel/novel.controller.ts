@@ -84,6 +84,7 @@ export default class NovelController {
       for (let i = 0; i < this.options.images; i++) {
         await modal.editReply({
           content: `이미지 ${i + 1} / ${this.options.images} 생성 중...`,
+          files: images,
         });
         const result = await this.api.onceGenerationResultAsync();
         images.push({
