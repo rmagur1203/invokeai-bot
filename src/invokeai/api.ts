@@ -1,4 +1,5 @@
 import io, { Socket } from 'socket.io-client';
+import { v4 as uuidv4 } from 'uuid';
 
 export default class SocketIOApi {
   public readonly socket: Socket;
@@ -98,6 +99,22 @@ export default class SocketIOApi {
     facetool: any
   ) {
     this.emit('generateImage', generation, esrgan, facetool);
+  }
+
+  // public uploadImage(filename: string) {
+
+  // }
+
+  public deleteImage(url: string, category: 'user' | 'result'): Promise<any> {
+    const uuid = uuidv4();
+    return new Promise((resolve, reject) => {
+      this.emit('deleteImage', url, uuid, category);
+      this.on('imageDeleted', (data) => {
+        if (data.uuid == uuid) {
+          resolve(data);
+        }
+      });
+    });
   }
 
   public cancel() {

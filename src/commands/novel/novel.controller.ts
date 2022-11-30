@@ -343,11 +343,7 @@ export default class NovelController {
           embeds: [embed],
           components: [next],
           files: images.images.slice(0, count).map((image) => ({
-            name:
-              image.metadata.image.prompt
-                .splice(0, 5)
-                .map((p) => p.prompt)
-                .join(' ') + '.png',
+            name: image.metadata.image.seed + 'image.png',
             attachment: this.wrapper.getImage(image.url),
           })),
         })
@@ -378,11 +374,7 @@ export default class NovelController {
           await interaction.editReply({
             embeds: [embed],
             files: images.images.slice(0, count).map((image) => ({
-              name:
-                image.metadata.image.prompt
-                  .splice(0, 5)
-                  .map((p) => p.prompt)
-                  .join(' ') + '.png',
+              name: image.metadata.image.seed + 'image.png',
               attachment: this.wrapper.getImage(image.url),
             })),
           });
