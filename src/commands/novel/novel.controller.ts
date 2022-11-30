@@ -2,13 +2,17 @@ import {
   ActionRowBuilder,
   ChatInputCommandInteraction,
   ComponentType,
+  EmbedBuilder,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
 import ms from 'ms';
 import { HEIGHTS, WIDTHS } from '../../invokeai';
-import SocketIOApiWrapper, { GenerationConfig } from '../../invokeai/wrapper';
+import SocketIOApiWrapper, {
+  DefaultGenerationConfig,
+  GenerationConfig,
+} from '../../invokeai/wrapper';
 
 export default class NovelController {
   private readonly wrapper = new SocketIOApiWrapper('http://plebea.com:9090/');
@@ -127,8 +131,58 @@ export default class NovelController {
     }
     if (highres) this.options.hires_fix = highres;
 
+    const embed = new EmbedBuilder().addFields(
+      {
+        name: 'Images',
+        value: (
+          this.options.images || DefaultGenerationConfig.images
+        ).toString(),
+        inline: true,
+      },
+      {
+        name: 'Steps',
+        value: (this.options.steps || DefaultGenerationConfig.steps).toString(),
+        inline: true,
+      },
+      {
+        name: 'CFG Scale',
+        value: (
+          this.options.cfg_scale || DefaultGenerationConfig.cfg_scale
+        ).toString(),
+        inline: true,
+      },
+      {
+        name: 'Width',
+        value: (this.options.width ?? DefaultGenerationConfig.width).toString(),
+        inline: true,
+      },
+      {
+        name: 'Height',
+        value: (
+          this.options.height ?? DefaultGenerationConfig.height
+        ).toString(),
+        inline: true,
+      },
+      {
+        name: 'Sampler',
+        value: this.options.sampler ?? DefaultGenerationConfig.sampler,
+        inline: true,
+      },
+      {
+        name: 'Seed',
+        value: (this.options.seed ?? 0).toString(),
+      },
+      {
+        name: 'High Res Optimization',
+        value: (
+          this.options.hires_fix ?? DefaultGenerationConfig.hires_fix
+        ).toString(),
+      }
+    );
+
     await interaction.reply({
       content: '옵션을 설정했습니다.',
+      embeds: [embed],
       ephemeral: true,
     });
   }
