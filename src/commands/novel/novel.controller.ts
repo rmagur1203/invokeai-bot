@@ -1,5 +1,7 @@
 import {
   ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   ChatInputCommandInteraction,
   ComponentType,
   EmbedBuilder,
@@ -327,9 +329,19 @@ export default class NovelController {
           text: `mtime ${images.images.slice(count - 1, count)[0].mtime}`,
         });
 
-      await interaction
+      const id = Math.random().toString(36).substring(7);
+      const next = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`gallery_next_${id}`)
+          .setLabel('다음')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('➡️')
+      );
+
+      const message = await interaction
         .editReply({
           embeds: [embed],
+          components: [next],
           files: images.images.slice(0, count).map((image) => ({
             name:
               image.metadata.image.prompt
@@ -345,6 +357,43 @@ export default class NovelController {
               '이미지를 업로드하기에 크기가 너무 큽니다. 이미지 수를 줄여주세요.'
             )
         );
+
+      message
+        ?.createMessageComponentCollector({
+          filter: (i) =>
+            i.customId === `gallery_next_${id}` &&
+            i.user.id === interaction.user.id,
+          time: ms('10s'),
+        })
+        .on('collect', async (i) => {
+          await i.deferUpdate();
+          const images = await this.wrapper.getImages(
+            'result',
+            Number(i.message.embeds[0].footer?.text?.split(' ')[1]) || undefined
+          );
+          embed.setFooter({
+            text: `mtime ${images.images.slice(count - 1, count)[0].mtime}`,
+          });
+          if (!interaction.isRepliable()) return;
+          await interaction.editReply({
+            embeds: [embed],
+            files: images.images.slice(0, count).map((image) => ({
+              name:
+                image.metadata.image.prompt
+                  .splice(0, 5)
+                  .map((p) => p.prompt)
+                  .join(' ') + '.png',
+              attachment: this.wrapper.getImage(image.url),
+            })),
+          });
+        })
+        .on('end', async (i) => {
+          next.components[0].setDisabled(true);
+          if (!interaction.isRepliable()) return;
+          await interaction.editReply({
+            components: [next],
+          });
+        });
     } catch (error) {
       console.error(error);
       await interaction.editReply({
