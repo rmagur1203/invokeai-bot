@@ -104,7 +104,88 @@ export default class NovelController {
     } else {
       const result = await this.api.onceGenerationResultAsync();
 
+      const embed = new EmbedBuilder()
+        .setTitle('Novel')
+        .setDescription(result.metadata.image.prompt[0].prompt)
+        .setFields(
+          {
+            name: 'App ID',
+            value: result.metadata.app_id,
+            inline: true,
+          },
+          {
+            name: 'App Version',
+            value: result.metadata.app_version,
+            inline: true,
+          },
+          {
+            name: '\u200b',
+            value: '\u200b',
+            inline: true,
+          }
+        )
+        .setFields(
+          {
+            name: 'Model',
+            value: result.metadata.model,
+            inline: true,
+          },
+          {
+            name: 'Model Hash',
+            value: result.metadata.model_hash,
+            inline: true,
+          },
+          {
+            name: 'Model ID',
+            value: result.metadata.model_id ?? '',
+            inline: true,
+          }
+        )
+        .setFields(
+          {
+            name: 'Seed',
+            value: result.metadata.image.seed.toString(),
+            inline: true,
+          },
+          {
+            name: 'Steps',
+            value: result.metadata.image.steps.toString(),
+            inline: true,
+          },
+          {
+            name: 'CFG Scale',
+            value: result.metadata.image.cfg_scale.toString(),
+            inline: true,
+          },
+          {
+            name: 'Width',
+            value: result.metadata.image.width.toString(),
+            inline: true,
+          },
+          {
+            name: 'Height',
+            value: result.metadata.image.height.toString(),
+            inline: true,
+          },
+          {
+            name: 'Sampler',
+            value: result.metadata.image.sampler,
+            inline: true,
+          },
+          {
+            name: 'High Res Optimization',
+            value: result.metadata.image.hires_fix.toString(),
+            inline: true,
+          },
+          {
+            name: 'Type',
+            value: result.metadata.image.type,
+            inline: true,
+          }
+        );
+
       await modal.editReply({
+        embeds: [embed],
         files: [
           {
             name: 'result.png',
