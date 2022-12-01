@@ -1,0 +1,38 @@
+{
+  "predefined": {
+    "config": {
+      "default": {
+        "images": 1,
+        "steps": 50,
+        "cfg_scale": 7.5,
+        "width": 512,
+        "height": 512,
+        "hires_fix": false
+      },
+      "highres": {
+        "images": 1,
+        "steps": 100,
+        "cfg_scale": 7.5,
+        "width": 1024,
+        "height": 1024,
+        "hires_fix": true
+      },
+      "wallpaper_medium": {
+        "images": 1,
+        "steps": 100,
+        "cfg_scale": 5,
+        "width": 1024,
+        "height": 512,
+        "hires_fix": true
+      },
+      "wallpaper_large": {
+        "images": 1,
+        "steps": 150,
+        "cfg_scale": 5,
+        "width": 1600,
+        "height": 896,
+        "hires_fix": true
+      }
+    }
+  }
+}

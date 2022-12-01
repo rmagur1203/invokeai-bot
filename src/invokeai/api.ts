@@ -95,8 +95,8 @@ export default class SocketIOApi {
 
   public generateImage(
     generation: GenerationParameters,
-    esrgan: any,
-    facetool: any
+    esrgan?: EsrganParameters,
+    facetool?: FacetoolParameters
   ) {
     this.emit('generateImage', generation, esrgan, facetool);
   }
@@ -120,6 +120,24 @@ export default class SocketIOApi {
   public cancel() {
     this.emit('cancel');
   }
+}
+
+export interface EsrganParameters {
+  level: number;
+  strength: number;
+}
+
+export interface FacetoolParameters {
+  codeformer_fidelity?: number;
+  strength: number;
+  type: 'gfpgan' | 'codeformer';
+}
+
+export interface PostProcessing {
+  scale?: number;
+  fidelity?: number;
+  strength: number;
+  type: 'esrgan' | 'gfpgan' | 'codeformer';
 }
 
 export interface Image {
@@ -160,7 +178,7 @@ export interface Metadata extends SystemConfig {
     seed: number;
     seamless: boolean;
     hires_fix: boolean;
-    postprocessing?: any;
+    postprocessing?: PostProcessing[];
     sampler: string;
     variations: any[];
     type: string;

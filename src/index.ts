@@ -2,6 +2,7 @@ import { ActivityType, Client, GatewayIntentBits, REST } from 'discord.js';
 import { Config } from './config';
 import {
   attachCommands,
+  injectClient,
   ModuleInterface,
   registCommands,
 } from './decorator/discord';
@@ -17,8 +18,10 @@ client.on('ready', () => {
 
   (async () => {
     const modules = await getModules();
+    const files = await getFiles();
     registCommands(rest, client.user!.id, modules);
     attachCommands(client, modules);
+    injectClient(client, files);
   })();
 });
 
@@ -26,6 +29,21 @@ async function getModules() {
   return await glob('commands/**/([a-zA-Z-_])+.module.{ts,js}', {
     cwd: __dirname,
   }).then((files) => {
+    return Promise.all(
+      files.map(async (file) => {
+        return require(path.join(__dirname, file)).default as ModuleInterface;
+      })
+    );
+  });
+}
+
+async function getFiles() {
+  return await glob(
+    'commands/**/([a-zA-Z-_])+.{module,controller,service}.{ts,js}',
+    {
+      cwd: __dirname,
+    }
+  ).then((files) => {
     return Promise.all(
       files.map(async (file) => {
         return require(path.join(__dirname, file)).default as ModuleInterface;

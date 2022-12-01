@@ -106,6 +106,38 @@ export default class NovelModule {
       .addSubcommand((subcommand) =>
         subcommand.setName('state').setDescription('상태를 확인합니다.')
       )
+      .addSubcommand((subcommand) =>
+        subcommand.setName('cancel').setDescription('생성을 중지합니다.')
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('load')
+          .setDescription('미리 정의된 설정을 불러옵니다.')
+          .addStringOption((option) =>
+            option
+              .setName('name')
+              .setDescription('설정 이름입니다.')
+              .setChoices(
+                {
+                  name: 'default',
+                  value: 'default',
+                },
+                {
+                  name: 'highres',
+                  value: 'highres',
+                },
+                {
+                  name: 'wallpaper_medium',
+                  value: 'wallpaper_medium',
+                },
+                {
+                  name: 'wallpaper_large',
+                  value: 'wallpaper_large',
+                }
+              )
+              .setRequired(true)
+          )
+      )
       .toJSON()
   )
   async novel(interaction: ChatInputCommandInteraction) {
@@ -126,13 +158,25 @@ export default class NovelModule {
         case 'state':
           await NovelModule.controller.state(interaction);
           break;
+        case 'cancel':
+          await NovelModule.controller.cancel(interaction);
+          break;
+        case 'load':
+          await NovelModule.controller.load(interaction);
+          break;
       }
     } catch (err) {
       console.error(err);
-      await interaction.reply({
-        content: '오류가 발생했습니다.',
-        ephemeral: true,
-      });
+      if (!interaction.replied) {
+        await interaction.reply({
+          content: '오류가 발생했습니다.',
+          ephemeral: true,
+        });
+      } else {
+        await interaction.editReply({
+          content: '오류가 발생했습니다.',
+        });
+      }
     }
   }
 }

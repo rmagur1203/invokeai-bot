@@ -9,6 +9,7 @@ import {
   UserContextMenuCommandInteraction,
 } from 'discord.js';
 import 'reflect-metadata';
+import { injectDependency } from './inject';
 
 // eslint-disable-next-line no-unused-vars
 enum MetadataKeys {
@@ -41,6 +42,10 @@ export function registCommands(
   rest.put(Routes.applicationCommands(userID), {
     body: commands,
   });
+}
+
+export function injectClient(client: Client, modules: ModuleInterface[]) {
+  injectDependency('DISCORD_CLIENT', client, modules);
 }
 
 export function attachCommands(client: Client, modules: ModuleInterface[]) {

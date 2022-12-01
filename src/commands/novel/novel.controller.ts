@@ -1,8 +1,10 @@
 import {
   ActionRowBuilder,
+  ActivityType,
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
+  Client,
   ComponentType,
   EmbedBuilder,
   ModalBuilder,
@@ -15,6 +17,8 @@ import SocketIOApiWrapper, {
   DefaultGenerationConfig,
   GenerationConfig,
 } from '../../invokeai/wrapper';
+import novel from '../../config/novel.json';
+import { Inject } from '../../decorator';
 
 export default class NovelController {
   private readonly wrapper = new SocketIOApiWrapper('http://plebea.com:9090/');
@@ -22,6 +26,8 @@ export default class NovelController {
   private options: Partial<GenerationConfig> = {};
   private isProcessing = false;
   private progress?: ProgressUpdate;
+  @Inject('DISCORD_CLIENT')
+  private readonly $client!: Client;
 
   constructor() {
     this.api.onProgressUpdate((progress) => {
@@ -31,6 +37,57 @@ export default class NovelController {
     this.api.onProcessingCanceled(() => {
       this.isProcessing = false;
     });
+  }
+
+  private configEmbed() {
+    return new EmbedBuilder().addFields(
+      {
+        name: 'Images',
+        value: (
+          this.options.images ?? DefaultGenerationConfig.images
+        ).toString(),
+        inline: true,
+      },
+      {
+        name: 'Steps',
+        value: (this.options.steps ?? DefaultGenerationConfig.steps).toString(),
+        inline: true,
+      },
+      {
+        name: 'CFG Scale',
+        value: (
+          this.options.cfg_scale ?? DefaultGenerationConfig.cfg_scale
+        ).toString(),
+        inline: true,
+      },
+      {
+        name: 'Width',
+        value: (this.options.width ?? DefaultGenerationConfig.width).toString(),
+        inline: true,
+      },
+      {
+        name: 'Height',
+        value: (
+          this.options.height ?? DefaultGenerationConfig.height
+        ).toString(),
+        inline: true,
+      },
+      {
+        name: 'Sampler',
+        value: this.options.sampler ?? DefaultGenerationConfig.sampler,
+        inline: true,
+      },
+      {
+        name: 'Seed',
+        value: (this.options.seed || 'auto').toString(),
+      },
+      {
+        name: 'High Res Optimization',
+        value: (
+          this.options.hires_fix ?? DefaultGenerationConfig.hires_fix
+        ).toString(),
+      }
+    );
   }
 
   public async invoke(interaction: ChatInputCommandInteraction) {
@@ -122,9 +179,7 @@ export default class NovelController {
             name: '\u200b',
             value: '\u200b',
             inline: true,
-          }
-        )
-        .setFields(
+          },
           {
             name: 'Model',
             value: result.metadata.model,
@@ -137,11 +192,9 @@ export default class NovelController {
           },
           {
             name: 'Model ID',
-            value: result.metadata.model_id ?? '',
+            value: result.metadata.model_id ?? 'N/A',
             inline: true,
-          }
-        )
-        .setFields(
+          },
           {
             name: 'Seed',
             value: result.metadata.image.seed.toString(),
@@ -181,8 +234,14 @@ export default class NovelController {
             name: 'Type',
             value: result.metadata.image.type,
             inline: true,
+          },
+          {
+            name: 'mtime',
+            value: result.mtime.toString(),
+            inline: true,
           }
-        );
+        )
+        .setURL(this.wrapper.getImage(result.url));
 
       await modal.editReply({
         embeds: [embed],
@@ -314,54 +373,7 @@ export default class NovelController {
       if (highres) this.options.hires_fix = highres;
     }
 
-    const embed = new EmbedBuilder().addFields(
-      {
-        name: 'Images',
-        value: (
-          this.options.images ?? DefaultGenerationConfig.images
-        ).toString(),
-        inline: true,
-      },
-      {
-        name: 'Steps',
-        value: (this.options.steps ?? DefaultGenerationConfig.steps).toString(),
-        inline: true,
-      },
-      {
-        name: 'CFG Scale',
-        value: (
-          this.options.cfg_scale ?? DefaultGenerationConfig.cfg_scale
-        ).toString(),
-        inline: true,
-      },
-      {
-        name: 'Width',
-        value: (this.options.width ?? DefaultGenerationConfig.width).toString(),
-        inline: true,
-      },
-      {
-        name: 'Height',
-        value: (
-          this.options.height ?? DefaultGenerationConfig.height
-        ).toString(),
-        inline: true,
-      },
-      {
-        name: 'Sampler',
-        value: this.options.sampler ?? DefaultGenerationConfig.sampler,
-        inline: true,
-      },
-      {
-        name: 'Seed',
-        value: (this.options.seed || 'auto').toString(),
-      },
-      {
-        name: 'High Res Optimization',
-        value: (
-          this.options.hires_fix ?? DefaultGenerationConfig.hires_fix
-        ).toString(),
-      }
-    );
+    const embed = this.configEmbed();
 
     if (gui && modal) {
       await modal.reply({
@@ -491,4 +503,41 @@ export default class NovelController {
       embeds: [embed],
     });
   }
+
+  public async cancel(interaction: ChatInputCommandInteraction) {
+    if (!this.isProcessing) return interaction.reply('생성 중이 아닙니다.');
+    this.api.cancel();
+    await interaction.reply('생성을 취소했습니다.');
+  }
+
+  public async load(interaction: ChatInputCommandInteraction) {
+    const name = interaction.options.getString('name', true);
+
+    if (!Object.keys(novel.predefined.config).includes(name))
+      return await interaction.reply('존재하지 않는 설정입니다.');
+    const config = (novel.predefined.config as any)[name] as PredefinedConfig;
+    this.options.images = config.images;
+    this.options.steps = config.steps;
+    this.options.cfg_scale = config.cfg_scale;
+    this.options.width = config.width as any;
+    this.options.height = config.height as any;
+    this.options.seed = config.seed;
+    this.options.hires_fix = config.hires_fix;
+    const embed = this.configEmbed();
+    await interaction.reply({
+      content: '옵션을 설정했습니다.',
+      embeds: [embed],
+      ephemeral: true,
+    });
+  }
+}
+
+export interface PredefinedConfig {
+  images: number;
+  steps: number;
+  cfg_scale: number;
+  width: number;
+  height: number;
+  seed?: number;
+  hires_fix: boolean;
 }
