@@ -103,6 +103,9 @@ export default class NovelModule {
               .setRequired(false)
           )
       )
+      .addSubcommand((subcommand) =>
+        subcommand.setName('state').setDescription('상태를 확인합니다.')
+      )
       .toJSON()
   )
   async novel(interaction: ChatInputCommandInteraction) {
@@ -119,6 +122,9 @@ export default class NovelModule {
           break;
         case 'gallery':
           await NovelModule.controller.gallery(interaction);
+          break;
+        case 'state':
+          await NovelModule.controller.state(interaction);
           break;
       }
     } catch (err) {

@@ -10,7 +10,7 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import ms from 'ms';
-import { HEIGHTS, WIDTHS } from '../../invokeai';
+import { HEIGHTS, ProgressUpdate, WIDTHS } from '../../invokeai';
 import SocketIOApiWrapper, {
   DefaultGenerationConfig,
   GenerationConfig,
@@ -21,9 +21,11 @@ export default class NovelController {
   private readonly api = this.wrapper.api;
   private options: Partial<GenerationConfig> = {};
   private isProcessing = false;
+  private progress?: ProgressUpdate;
 
   constructor() {
     this.api.onProgressUpdate((progress) => {
+      this.progress = progress;
       this.isProcessing = progress.isProcessing;
     });
     this.api.onProcessingCanceled(() => {
@@ -392,5 +394,20 @@ export default class NovelController {
         content: '오류가 발생했습니다.',
       });
     }
+  }
+
+  public async state(interaction: ChatInputCommandInteraction) {
+    if (!this.progress) return interaction.reply('정보가 없습니다.');
+    const embed = new EmbedBuilder().addFields(
+      Object.entries(this.progress).map(([key, value]) => ({
+        name: key,
+        value: value.toString(),
+        inline: true,
+      }))
+    );
+
+    await interaction.reply({
+      embeds: [embed],
+    });
   }
 }
