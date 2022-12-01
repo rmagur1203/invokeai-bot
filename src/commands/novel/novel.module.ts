@@ -83,11 +83,6 @@ export default class NovelModule {
       )
       .addSubcommand((subcommand) =>
         subcommand
-          .setName('live')
-          .setDescription('생성된 이미지를 실시간으로 보여줍니다.')
-      )
-      .addSubcommand((subcommand) =>
-        subcommand
           .setName('gallery')
           .setDescription('이미지 갤러리를 보여줍니다.')
           .addNumberOption((option) =>
@@ -148,9 +143,6 @@ export default class NovelModule {
           break;
         case 'config':
           await NovelModule.controller.config(interaction);
-          break;
-        case 'live':
-          await NovelModule.controller.live(interaction);
           break;
         case 'gallery':
           await NovelModule.controller.gallery(interaction);

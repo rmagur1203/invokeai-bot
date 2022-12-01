@@ -390,25 +390,6 @@ export default class NovelController {
     }
   }
 
-  public async live(interaction: ChatInputCommandInteraction) {
-    await interaction.reply('생성 중입니다...');
-
-    this.api.onIntermediateResult((result) => {
-      if (!interaction.isRepliable()) return;
-      interaction.editReply({
-        content: '',
-        files: [
-          {
-            name: `intermediate.png`,
-            attachment: result.isBase64
-              ? Buffer.from(result.url.split(',')[1], 'base64')
-              : this.wrapper.getImage(result.url),
-          },
-        ],
-      });
-    });
-  }
-
   public async gallery(interaction: ChatInputCommandInteraction) {
     try {
       const mtime = interaction.options.getNumber('mtime', false);
