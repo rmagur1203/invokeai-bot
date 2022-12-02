@@ -279,6 +279,10 @@ export default class NovelService extends EventEmitter {
     );
     if (prompt.type !== ComponentType.TextInput) return;
     await modalSubmit.deferReply();
+    if (this.isProcessing)
+      return modalSubmit.editReply(
+        '이미 생성 중입니다. 잠시 후 다시 시도해주세요.'
+      );
     await this.wrapper.generate({
       ...this.options,
       prompt: prompt.value,
