@@ -141,7 +141,7 @@ export default class NovelService extends EventEmitter {
       .catch(() => void interaction.reply('시간이 초과되었습니다.'));
   }
 
-  private generationResultEmbed(result: GenerationResult) {
+  public generationResultEmbed(result: GenerationResult) {
     return new EmbedBuilder()
       .setTitle('Novel')
       .setDescription(result.metadata.image.prompt[0].prompt)

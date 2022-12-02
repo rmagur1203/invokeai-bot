@@ -1,4 +1,8 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import {
+  ChannelType,
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+} from 'discord.js';
 import { Command, Module } from '../../decorator';
 import { HEIGHTS, WIDTHS } from '../../invokeai';
 import NovelController from './novel.controller';
@@ -25,6 +29,12 @@ export default class NovelModule {
             option
               .setName('save')
               .setDescription('이미지를 서버에 저장합니다. (기본값: true)')
+              .setRequired(false)
+          )
+          .addBooleanOption((option) =>
+            option
+              .setName('embed')
+              .setDescription('이미지의 자세한 정보를 표시합니다.')
               .setRequired(false)
           )
       )
@@ -155,6 +165,22 @@ export default class NovelModule {
               .setRequired(true)
           )
       )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('debug')
+          .setDescription('디버깅용 채널을 설정합니다.')
+          .addChannelOption((option) =>
+            option
+              .setName('channel')
+              .setDescription('디버깅용 채널입니다.')
+              .addChannelTypes(
+                ChannelType.GuildText,
+                ChannelType.PublicThread,
+                ChannelType.PrivateThread
+              )
+              .setRequired(true)
+          )
+      )
       .toJSON()
   )
   async novel(interaction: ChatInputCommandInteraction) {
@@ -178,17 +204,21 @@ export default class NovelModule {
         case 'load':
           await NovelModule.controller.load(interaction);
           break;
+        case 'debug':
+          await NovelModule.controller.debug(interaction);
+          break;
       }
     } catch (err) {
-      console.error(err);
+      console.log('error', err);
       if (!interaction.replied) {
         await interaction.reply({
           content: '오류가 발생했습니다.',
           ephemeral: true,
         });
       } else {
-        await interaction.editReply({
+        await interaction.followUp({
           content: '오류가 발생했습니다.',
+          ephemeral: true,
         });
       }
     }

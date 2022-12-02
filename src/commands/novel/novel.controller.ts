@@ -1,13 +1,22 @@
-import { ChatInputCommandInteraction } from 'discord.js';
+import {
+  ChatInputCommandInteraction,
+  Client,
+  TextChannel,
+  ThreadChannel,
+} from 'discord.js';
 import SocketIOApiWrapper, { GenerationConfig } from '../../invokeai/wrapper';
 import novel from '../../config/novel.json';
 import NovelService from './novel.service';
+import { Inject } from '../../decorator';
 
 export default class NovelController {
   private readonly wrapper = new SocketIOApiWrapper('http://plebea.com:9090/');
   private readonly api = this.wrapper.api;
 
   private readonly service = new NovelService(this.wrapper);
+
+  @Inject('DISCORD_CLIENT')
+  private readonly $client!: Client;
 
   public get isProcessing() {
     return this.service.isProcessing;
@@ -87,6 +96,41 @@ export default class NovelController {
     await interaction.reply({
       content: '옵션을 설정했습니다.',
       embeds: [this.service.configEmbed()],
+      ephemeral: true,
+    });
+  }
+
+  public async debug(interaction: ChatInputCommandInteraction) {
+    if (!this.api.socket.connected)
+      return interaction.reply('서버에 연결할 수 없습니다.');
+
+    const channel = interaction.options.getChannel('channel', true) as
+      | TextChannel
+      | ThreadChannel;
+
+    this.api.onConnect(() => {
+      channel.send('서버에 연결되었습니다.');
+    });
+
+    this.api.onGenerationResult((result) => {
+      const embed = this.service.generationResultEmbed(result);
+      channel.send({
+        embeds: [embed],
+        files: [
+          {
+            name: 'novel.png',
+            attachment: this.wrapper.getImage(result.url),
+          },
+        ],
+      });
+    });
+
+    this.api.onDisconnect(() => {
+      channel.send('서버와 연결이 끊겼습니다.');
+    });
+
+    interaction.reply({
+      content: `${channel.toString()} 채널을 디버그 채널로 등록했습니다.`,
       ephemeral: true,
     });
   }
