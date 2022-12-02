@@ -19,6 +19,7 @@
     "@types/glob": "^8.0.0",
     "@types/luxon": "^3.0.1",
     "@types/ms": "^0.7.31",
+    "@types/node": "^18.11.10",
     "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^5.24.0",
     "@typescript-eslint/parser": "^5.24.0",

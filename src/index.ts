@@ -8,6 +8,7 @@ import {
 } from './decorator/discord';
 import path from 'path';
 import glob from 'fast-glob';
+import { registCacheManager } from './decorator';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const rest = new REST({ version: '10' }).setToken(Config.get('TOKEN'));
@@ -20,6 +21,7 @@ client.on('ready', () => {
     const modules = await getModules();
     const files = await getFiles();
     registCommands(rest, client.user!.id, modules);
+    registCacheManager('memory', {}, files);
     attachCommands(client, modules);
     injectClient(client, files);
   })();
