@@ -245,7 +245,8 @@ export default class NovelService extends EventEmitter {
 
   public async sendImageAsFollowUp(
     interaction: CommandInteraction | ModalSubmitInteraction,
-    useEmbed: boolean = false
+    useEmbed: boolean = false,
+    spoiler: boolean = false
   ) {
     const image = await this.api.onceGenerationResultAsync();
     const embed = this.generationResultEmbed(image);
@@ -253,7 +254,7 @@ export default class NovelService extends EventEmitter {
       embeds: useEmbed ? [embed] : [],
       files: [
         {
-          name: 'image.png',
+          name: spoiler ? 'SPOILER_novel.png' : 'novel.png',
           attachment: this.wrapper.getImage(image.url),
         },
       ],
@@ -266,10 +267,13 @@ export default class NovelService extends EventEmitter {
   }
 
   public async invoke(interaction: ChatInputCommandInteraction) {
+    const spoiler = interaction.options.getBoolean('spoiler', false) ?? false;
     const promptModal = this.generatePromptModal();
     const modalSubmit = await this.showModal(interaction, promptModal);
     if (!modalSubmit) return;
-    const prompt = modalSubmit.fields.getField(promptModal.data.custom_id!);
+    const prompt = modalSubmit.fields.getField(
+      promptModal.components[0].components[0].data.custom_id!
+    );
     if (prompt.type !== ComponentType.TextInput) return;
     await modalSubmit.deferReply();
     await this.wrapper.generate({
@@ -277,7 +281,7 @@ export default class NovelService extends EventEmitter {
       prompt: prompt.value,
     });
     for (let i = 0; i < (this.options.images ?? 1); i++) {
-      await this.sendImageAsFollowUp(modalSubmit);
+      await this.sendImageAsFollowUp(modalSubmit, true);
     }
   }
 

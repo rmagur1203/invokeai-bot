@@ -12,7 +12,15 @@ export default class NovelModule {
       .setName('novel')
       .setDescription('NovelAI를 이용해 그림을 생성하는 명령어입니다.')
       .addSubcommand((subcommand) =>
-        subcommand.setName('invoke').setDescription('이미지를 생성합니다.')
+        subcommand
+          .setName('invoke')
+          .setDescription('이미지를 생성합니다.')
+          .addBooleanOption((option) =>
+            option
+              .setName('spoiler')
+              .setDescription('이미지를 스포일러로 전송합니다.')
+              .setRequired(false)
+          )
       )
       .addSubcommand((subcommand) =>
         subcommand
