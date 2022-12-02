@@ -21,6 +21,12 @@ export default class NovelModule {
               .setDescription('이미지를 스포일러로 전송합니다.')
               .setRequired(false)
           )
+          .addBooleanOption((option) =>
+            option
+              .setName('save')
+              .setDescription('이미지를 서버에 저장합니다. (기본값: true)')
+              .setRequired(false)
+          )
       )
       .addSubcommand((subcommand) =>
         subcommand

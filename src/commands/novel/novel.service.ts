@@ -250,7 +250,7 @@ export default class NovelService extends EventEmitter {
   ) {
     const image = await this.api.onceGenerationResultAsync();
     const embed = this.generationResultEmbed(image);
-    await interaction.followUp({
+    const message = await interaction.followUp({
       embeds: useEmbed ? [embed] : [],
       files: [
         {
@@ -259,6 +259,7 @@ export default class NovelService extends EventEmitter {
         },
       ],
     });
+    return { image, message };
   }
 
   public async loadConfig(name: string) {
@@ -268,6 +269,8 @@ export default class NovelService extends EventEmitter {
 
   public async invoke(interaction: ChatInputCommandInteraction) {
     const spoiler = interaction.options.getBoolean('spoiler', false) ?? false;
+    const save = interaction.options.getBoolean('save', false) ?? true;
+
     const promptModal = this.generatePromptModal();
     const modalSubmit = await this.showModal(interaction, promptModal);
     if (!modalSubmit) return;
@@ -281,7 +284,12 @@ export default class NovelService extends EventEmitter {
       prompt: prompt.value,
     });
     for (let i = 0; i < (this.options.images ?? 1); i++) {
-      await this.sendImageAsFollowUp(modalSubmit, true, spoiler);
+      const { image } = await this.sendImageAsFollowUp(
+        modalSubmit,
+        true,
+        spoiler
+      );
+      if (!save) this.api.deleteImage(image.url, 'result').then(console.log);
     }
   }
 
