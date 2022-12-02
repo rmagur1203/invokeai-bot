@@ -48,6 +48,8 @@ export default class SocketIOApiWrapper {
       progress_images: config.display_inprogress.type.value === 'full-res',
       progress_latents: config.display_inprogress.type.value === 'latents',
       save_intermediates: config.display_inprogress.interval,
+      generation_mode: 'txt2img',
+      init_mask: '',
       seamless: config.seamless_tiling,
       hires_fix: config.hires_fix,
       variation_amount: config.variation_amount,

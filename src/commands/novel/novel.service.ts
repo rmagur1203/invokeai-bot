@@ -172,8 +172,8 @@ export default class NovelService extends EventEmitter {
           inline: true,
         },
         {
-          name: 'Model ID',
-          value: result.metadata.model_id ?? 'N/A',
+          name: 'Model Weight',
+          value: result.metadata.model_weights,
           inline: true,
         },
         {
@@ -293,7 +293,10 @@ export default class NovelService extends EventEmitter {
         true,
         spoiler
       );
-      if (!save) this.api.deleteImage(image.url, 'result').then(console.log);
+      if (!save)
+        this.api
+          .deleteImage(image.url, image.thumbnail, 'result')
+          .then(console.log);
     }
   }
 

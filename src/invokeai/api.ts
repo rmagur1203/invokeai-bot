@@ -54,6 +54,10 @@ export default class SocketIOApi {
     this.once('generationResult', callback);
   }
 
+  public onModelChanged(callback: (model: ModelChanged) => void) {
+    this.on('modelChanged', callback);
+  }
+
   public async onceGenerationResultAsync(): Promise<GenerationResult> {
     return new Promise<GenerationResult>((resolve) => {
       this.onceGenerationResult(resolve);
@@ -105,10 +109,14 @@ export default class SocketIOApi {
 
   // }
 
-  public deleteImage(url: string, category: 'user' | 'result'): Promise<any> {
+  public deleteImage(
+    url: string,
+    thumbnail: string,
+    category: 'user' | 'result'
+  ): Promise<any> {
     const uuid = uuidv4();
     return new Promise((resolve, reject) => {
-      this.emit('deleteImage', url, uuid, category);
+      this.emit('deleteImage', url, thumbnail, uuid, category);
       this.on('imageDeleted', (data) => {
         if (data.uuid == uuid) {
           resolve(data);
@@ -121,6 +129,8 @@ export default class SocketIOApi {
     this.emit('cancel');
   }
 }
+
+export type GenerationMode = 'txt2img';
 
 export interface EsrganParameters {
   level: number;
@@ -142,8 +152,10 @@ export interface PostProcessing {
 
 export interface Image {
   url: string;
+  thumbnail: string;
   mtime: number;
   metadata: Metadata;
+  dreamPrompt: string;
   width: number;
   height: number;
   category: string;
@@ -192,14 +204,20 @@ export interface IntermediateResult {
   metadata: Metadata;
   width: number;
   height: number;
+  generationMode: GenerationMode;
+  boundingBox?: any;
 }
 
 export interface GenerationResult {
   url: string;
+  thumbnail: string;
   mtime: number;
   metadata: Metadata;
+  dreamPrompt: string;
   width: number;
   height: number;
+  boundingBox?: any;
+  generationMode: GenerationMode;
 }
 
 export interface GenerationParameters {
@@ -216,6 +234,8 @@ export interface GenerationParameters {
   progress_images: boolean;
   progress_latents: boolean;
   save_intermediates: number;
+  generation_mode: GenerationMode;
+  init_mask: string;
   seamless: boolean;
   hires_fix: boolean;
   variation_amount: number;
@@ -228,11 +248,12 @@ export interface ModelChanged {
 
 export interface SystemConfig {
   model: string;
-  model_id?: any;
+  model_weights: string;
   model_hash: string;
   app_id: string;
   app_version: string;
   model_list: { [x: string]: Model };
+  infill_methods: string[];
 }
 
 export interface Model {
