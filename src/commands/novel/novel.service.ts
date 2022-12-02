@@ -281,7 +281,7 @@ export default class NovelService extends EventEmitter {
       prompt: prompt.value,
     });
     for (let i = 0; i < (this.options.images ?? 1); i++) {
-      await this.sendImageAsFollowUp(modalSubmit, true);
+      await this.sendImageAsFollowUp(modalSubmit, true, spoiler);
     }
   }
 
