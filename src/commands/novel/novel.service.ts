@@ -294,9 +294,13 @@ export default class NovelService extends EventEmitter {
         spoiler
       );
       if (!save)
-        this.api
-          .deleteImage(image.url, image.thumbnail, 'result')
-          .then(console.log);
+        setTimeout(
+          () =>
+            this.api
+              .deleteImage(image.url, image.thumbnail, 'result')
+              .then(console.log),
+          ms('1m')
+        );
     }
   }
 
