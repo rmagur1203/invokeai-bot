@@ -113,7 +113,15 @@ export default class NovelModule {
           )
       )
       .addSubcommand((subcommand) =>
-        subcommand.setName('state').setDescription('상태를 확인합니다.')
+        subcommand
+          .setName('state')
+          .setDescription('상태를 확인합니다.')
+          .addBooleanOption((option) =>
+            option
+              .setName('ephemeral')
+              .setDescription('응답을 숨깁니다. (기본값: false)')
+              .setRequired(false)
+          )
       )
       .addSubcommand((subcommand) =>
         subcommand.setName('cancel').setDescription('생성을 중지합니다.')

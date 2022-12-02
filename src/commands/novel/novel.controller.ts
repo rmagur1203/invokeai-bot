@@ -52,12 +52,16 @@ export default class NovelController {
     if (!this.api.socket.connected)
       return interaction.reply('서버에 연결할 수 없습니다.');
 
+    const ephemeral =
+      interaction.options.getBoolean('ephemeral', false) ?? false;
+
     const embed = this.service.stateEmbed();
 
     if (!embed) return interaction.reply('정보가 없습니다.');
 
     await interaction.reply({
       embeds: [embed],
+      ephemeral,
     });
   }
 
