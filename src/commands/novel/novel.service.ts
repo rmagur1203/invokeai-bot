@@ -46,6 +46,9 @@ export default class NovelService extends EventEmitter {
   constructor(private readonly wrapper: SocketIOApiWrapper) {
     super();
     this.api.onProgressUpdate((progress) => {
+      if (this.progress?.currentStatus !== progress.currentStatus) {
+        this.$client.user?.setActivity(progress.currentStatus);
+      }
       this.progress = progress;
       this.isProcessing = progress.isProcessing;
     });
@@ -533,6 +536,23 @@ export default class NovelService extends EventEmitter {
           },
         ],
       });
+    });
+
+    this.api.onModelChanged((model) => {
+      const embed = new EmbedBuilder()
+        .setTitle('모델 변경됨')
+        .setDescription(model.model_name)
+        .addFields(
+          Object.entries(model.model_list).map(([key, value]) => ({
+            name: key,
+            value: value.description,
+          }))
+        );
+      channel.send({ embeds: [embed] });
+    });
+
+    this.api.onProcessingCanceled(() => {
+      channel.send('생성이 취소되었습니다.');
     });
 
     this.api.onDisconnect(() => {
