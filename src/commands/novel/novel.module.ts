@@ -9,7 +9,13 @@ import NovelController from './novel.controller';
 
 @Module()
 export default class NovelModule {
-  private static readonly controller = new NovelController();
+  private static controller: NovelController;
+
+  constructor() {
+    if (!NovelModule.controller) {
+      NovelModule.controller = new NovelController();
+    }
+  }
 
   @Command(
     new SlashCommandBuilder()

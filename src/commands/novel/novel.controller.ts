@@ -2,8 +2,8 @@ import { ChatInputCommandInteraction, Client, TextChannel } from 'discord.js';
 import SocketIOApiWrapper, { GenerationConfig } from '../../invokeai/wrapper';
 import novel from '../../config/novel.json';
 import NovelService from './novel.service';
-import { Inject } from '../../decorator';
 import { MemoryCache } from 'cache-manager';
+import { Inject } from '../../decorator';
 
 export default class NovelController {
   private readonly wrapper = new SocketIOApiWrapper('http://plebea.com:9090/');
@@ -18,17 +18,19 @@ export default class NovelController {
   private readonly $client!: Client;
 
   constructor() {
-    (async () => {
-      const debugChannelIds =
-        (await this.$store.get<string[]>('novel_debug_channel_ids')) ?? [];
+    this.initialize();
+  }
 
-      for (const channelId of debugChannelIds) {
-        const channel = await this.$client.channels.fetch(channelId);
-        if (channel instanceof TextChannel) {
-          this.service.registDebugChannel(channel);
-        }
+  private async initialize() {
+    const debugChannelIds =
+      (await this.$store.get<string[]>('novel_debug_channel_ids')) ?? [];
+
+    for (const channelId of debugChannelIds) {
+      const channel = await this.$client.channels.fetch(channelId);
+      if (channel instanceof TextChannel) {
+        this.service.registDebugChannel(channel);
       }
-    })();
+    }
   }
 
   public get isProcessing() {

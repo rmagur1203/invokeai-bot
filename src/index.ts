@@ -21,8 +21,7 @@ client.on('ready', () => {
   (async () => {
     const modules = await getModules();
     const files = await getFiles();
-    registCommands(rest, client.user!.id, modules);
-    registCacheManager(
+    await registCacheManager(
       redisStore.create,
       {
         host: Config.get('REDIS_HOST'),
@@ -31,8 +30,9 @@ client.on('ready', () => {
       },
       files
     );
-    attachCommands(client, modules);
     injectClient(client, files);
+    registCommands(rest, client.user!.id, modules);
+    attachCommands(client, modules);
   })();
 });
 
