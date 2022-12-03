@@ -77,7 +77,7 @@ export default class NovelController {
       return interaction.reply('서버에 연결할 수 없습니다.');
 
     const ephemeral =
-      interaction.options.getBoolean('ephemeral', false) ?? false;
+      interaction.options.getBoolean('ephemeral', false) ?? true;
 
     const embed = this.service.stateEmbed();
 

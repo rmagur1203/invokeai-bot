@@ -135,7 +135,7 @@ export default class NovelModule {
           .addBooleanOption((option) =>
             option
               .setName('ephemeral')
-              .setDescription('응답을 숨깁니다. (기본값: false)')
+              .setDescription('응답을 숨깁니다. (기본값: true)')
               .setRequired(false)
           )
       )
