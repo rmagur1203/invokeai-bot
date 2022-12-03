@@ -9,6 +9,7 @@ import {
 import path from 'path';
 import glob from 'fast-glob';
 import { registCacheManager } from './decorator';
+import * as redisStore from 'cache-manager-redis-store';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const rest = new REST({ version: '10' }).setToken(Config.get('TOKEN'));
@@ -21,7 +22,15 @@ client.on('ready', () => {
     const modules = await getModules();
     const files = await getFiles();
     registCommands(rest, client.user!.id, modules);
-    registCacheManager('memory', {}, files);
+    registCacheManager(
+      redisStore.create,
+      {
+        host: Config.get('REDIS_HOST'),
+        port: Config.get('REDIS_PORT'),
+        ttl: 600 * 1000,
+      },
+      files
+    );
     attachCommands(client, modules);
     injectClient(client, files);
   })();

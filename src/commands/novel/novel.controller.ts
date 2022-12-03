@@ -1,13 +1,9 @@
-import {
-  ChatInputCommandInteraction,
-  Client,
-  TextChannel,
-  ThreadChannel,
-} from 'discord.js';
+import { ChatInputCommandInteraction, Client, TextChannel } from 'discord.js';
 import SocketIOApiWrapper, { GenerationConfig } from '../../invokeai/wrapper';
 import novel from '../../config/novel.json';
 import NovelService from './novel.service';
 import { Inject } from '../../decorator';
+import { MemoryCache } from 'cache-manager';
 
 export default class NovelController {
   private readonly wrapper = new SocketIOApiWrapper('http://plebea.com:9090/');
@@ -15,8 +11,25 @@ export default class NovelController {
 
   private readonly service = new NovelService(this.wrapper);
 
+  @Inject('CACHE_MANAGER')
+  public readonly $store!: MemoryCache;
+
   @Inject('DISCORD_CLIENT')
   private readonly $client!: Client;
+
+  constructor() {
+    (async () => {
+      const debugChannelIds =
+        (await this.$store.get<string[]>('novel_debug_channel_ids')) ?? [];
+
+      for (const channelId of debugChannelIds) {
+        const channel = await this.$client.channels.fetch(channelId);
+        if (channel instanceof TextChannel) {
+          this.service.registDebugChannel(channel);
+        }
+      }
+    })();
+  }
 
   public get isProcessing() {
     return this.service.isProcessing;
@@ -104,32 +117,25 @@ export default class NovelController {
     if (!this.api.socket.connected)
       return interaction.reply('서버에 연결할 수 없습니다.');
 
-    const channel = interaction.options.getChannel('channel', true) as
-      | TextChannel
-      | ThreadChannel;
+    const channel = interaction.options.getChannel(
+      'channel',
+      true
+    ) as TextChannel;
 
-    this.api.onConnect(() => {
-      channel.send('서버에 연결되었습니다.');
-    });
+    const debugChannelIds =
+      (await this.$store.get<string[]>('novel_debug_channel_ids')) ?? [];
 
-    this.api.onGenerationResult((result) => {
-      const embed = this.service.generationResultEmbed(result);
-      channel.send({
-        embeds: [embed],
-        files: [
-          {
-            name: 'novel.png',
-            attachment: this.wrapper.getImage(result.url),
-          },
-        ],
-      });
-    });
+    if (debugChannelIds.includes(channel.id)) {
+      return await interaction.reply('이미 디버그 채널로 설정되어 있습니다.');
+    }
 
-    this.api.onDisconnect(() => {
-      channel.send('서버와 연결이 끊겼습니다.');
-    });
+    debugChannelIds.push(channel.id);
 
-    interaction.reply({
+    await this.$store.set('novel_debug_channel_ids', debugChannelIds);
+
+    this.service.registDebugChannel(channel);
+
+    await interaction.reply({
       content: `${channel.toString()} 채널을 디버그 채널로 등록했습니다.`,
       ephemeral: true,
     });

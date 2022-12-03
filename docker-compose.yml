@@ -1,0 +1,14 @@
+version: '3.0'
+
+services:
+  cache:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - ./cache:/tmp/redis/data
+    networks:
+      - backend
+
+networks:
+  backend:

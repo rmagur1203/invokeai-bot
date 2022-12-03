@@ -173,11 +173,7 @@ export default class NovelModule {
             option
               .setName('channel')
               .setDescription('디버깅용 채널입니다.')
-              .addChannelTypes(
-                ChannelType.GuildText,
-                ChannelType.PublicThread,
-                ChannelType.PrivateThread
-              )
+              .addChannelTypes(ChannelType.GuildText)
               .setRequired(true)
           )
       )

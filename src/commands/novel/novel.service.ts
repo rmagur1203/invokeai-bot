@@ -9,6 +9,7 @@ import {
   EmbedBuilder,
   ModalBuilder,
   ModalSubmitInteraction,
+  TextBasedChannel,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
@@ -28,12 +29,16 @@ import SocketIOApiWrapper, {
 import { PredefinedConfig } from './novel.controller';
 
 import novel from '../../config/novel.json';
+import { MemoryCache } from 'cache-manager';
 
 export default class NovelService extends EventEmitter {
   private readonly api = this.wrapper.api;
   public options: Partial<GenerationConfig> = {};
   public isProcessing = false;
   public progress?: ProgressUpdate;
+
+  @Inject('CACHE_MANAGER')
+  public readonly $store!: MemoryCache;
 
   @Inject('DISCORD_CLIENT')
   private readonly $client!: Client;
@@ -510,5 +515,28 @@ export default class NovelService extends EventEmitter {
   public async cancel(interaction: CommandInteraction) {
     this.api.cancel();
     await interaction.reply('생성을 취소했습니다.');
+  }
+
+  public async registDebugChannel(channel: TextBasedChannel) {
+    this.api.onConnect(() => {
+      channel.send('서버에 연결되었습니다.');
+    });
+
+    this.api.onGenerationResult((result) => {
+      const embed = this.generationResultEmbed(result);
+      channel.send({
+        embeds: [embed],
+        files: [
+          {
+            name: 'novel.png',
+            attachment: this.wrapper.getImage(result.url),
+          },
+        ],
+      });
+    });
+
+    this.api.onDisconnect(() => {
+      channel.send('서버와 연결이 끊겼습니다.');
+    });
   }
 }
