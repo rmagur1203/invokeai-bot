@@ -20,6 +20,7 @@ import {
   GenerationConfig,
   GenerationResult,
   HEIGHTS,
+  IntermediateResult,
   ProgressUpdate,
   WIDTHS,
 } from '../../invokeai';
@@ -36,6 +37,7 @@ export default class NovelService extends EventEmitter {
   public options: Partial<GenerationConfig> = {};
   public isProcessing = false;
   public progress?: ProgressUpdate;
+  public intermediate?: IntermediateResult;
 
   @Inject('CACHE_MANAGER')
   public readonly $store!: MemoryCache;
@@ -51,6 +53,12 @@ export default class NovelService extends EventEmitter {
       }
       this.progress = progress;
       this.isProcessing = progress.isProcessing;
+    });
+    this.api.onIntermediateResult((result) => {
+      this.intermediate = result;
+    });
+    this.api.socket.on('error', (error) => {
+      console.log('error: ', error);
     });
     this.api.onProcessingCanceled(() => {
       this.isProcessing = false;
