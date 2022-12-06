@@ -52,10 +52,13 @@ export default class NovelService extends EventEmitter {
       this.$client.user?.setActivity('Connected');
     });
     this.api.onProgressUpdate((progress) => {
-      if (this.progress?.currentStatus !== progress.currentStatus) {
+      if (
+        this.progress?.currentStatus !== progress.currentStatus ||
+        this.progress?.currentIteration !== progress.currentIteration
+      ) {
         let message = progress.currentStatus;
         if (progress.isProcessing)
-          message += ` (${progress.currentStep}/${progress.totalSteps})`;
+          message += ` (${progress.currentIteration}/${progress.totalIterations})`;
         this.$client.user?.setActivity(message);
       }
       this.progress = progress;
