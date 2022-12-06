@@ -47,6 +47,9 @@ export default class NovelService extends EventEmitter {
 
   constructor(private readonly wrapper: SocketIOApiWrapper) {
     super();
+    this.api.onConnect(() => {
+      this.isProcessing = false;
+    });
     this.api.onProgressUpdate((progress) => {
       if (this.progress?.currentStatus !== progress.currentStatus) {
         this.$client.user?.setActivity(progress.currentStatus);
