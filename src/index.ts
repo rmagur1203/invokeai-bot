@@ -16,7 +16,7 @@ const rest = new REST({ version: '10' }).setToken(Config.get('TOKEN'));
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user!.tag}!`);
-  client.user?.setActivity('이미지 생성', { type: ActivityType.Playing });
+  client.user?.setActivity('Disconnected');
 
   (async () => {
     const modules = await getModules();

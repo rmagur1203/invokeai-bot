@@ -49,6 +49,7 @@ export default class NovelService extends EventEmitter {
     super();
     this.api.onConnect(() => {
       this.isProcessing = false;
+      this.$client.user?.setActivity('Connected');
     });
     this.api.onProgressUpdate((progress) => {
       if (this.progress?.currentStatus !== progress.currentStatus) {
@@ -68,6 +69,10 @@ export default class NovelService extends EventEmitter {
     });
     this.api.onProcessingCanceled(() => {
       this.isProcessing = false;
+    });
+    this.api.onDisconnect(() => {
+      this.isProcessing = false;
+      this.$client.user?.setActivity('Disconnected');
     });
   }
 
