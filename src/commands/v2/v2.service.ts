@@ -42,6 +42,7 @@ export default class V2Service {
   }
 
   public async registDebugChannel(channel: TextBasedChannel) {
+    console.log('registDebugChannel', channel.id);
     this.serverSocket.on('generateResult', (result) => {
       const embed = generationResultEmbed(result);
       channel.send({

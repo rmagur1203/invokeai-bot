@@ -11,9 +11,13 @@ import { Server } from './v2.interfaces';
 
 @Module()
 export default class V2Module {
-  private readonly controller = new V2Controller();
+  private static controller: V2Controller;
 
-  constructor() {}
+  constructor() {
+    if (!V2Module.controller) {
+      V2Module.controller = new V2Controller();
+    }
+  }
 
   @Command(
     new SlashCommandBuilder()
