@@ -38,6 +38,9 @@ export default class V2Module {
       .setName('queue')
       .setDescription('대기열을 확인합니다.')
       .addSubcommand((subcommand) =>
+        subcommand.setName('list').setDescription('대기열을 확인합니다.')
+      )
+      .addSubcommand((subcommand) =>
         subcommand
           .setName('count')
           .setDescription('대기열의 길이를 확인합니다.')
@@ -50,18 +53,20 @@ export default class V2Module {
       GenerationConfig
     ][];
 
-    if (interaction.options.getSubcommand() === 'count') {
-      interaction.reply(`대기열의 길이는 ${data.length}입니다.`);
-      return;
-    } else {
-      const content =
-        '```\n' +
-        data
-          .map(([server, config], index) => `${index}. ${server}`)
-          .join('\n') +
-        '\n```';
+    switch (interaction.options.getSubcommand()) {
+      case 'list':
+        const content =
+          '```\n' +
+          data
+            .map(([server, config], index) => `${index}. ${server}`)
+            .join('\n') +
+          '\n```';
 
-      interaction.reply(content);
+        interaction.reply(content);
+        break;
+      case 'count':
+        interaction.reply(`대기열의 길이는 ${data.length}입니다.`);
+        break;
     }
   }
 
