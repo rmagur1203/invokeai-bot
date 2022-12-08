@@ -21,16 +21,16 @@ client.on('ready', () => {
   (async () => {
     const modules = await getModules();
     const files = await getFiles();
-    // await registCacheManager(
-    //   redisStore.create,
-    //   {
-    //     host: Config.get('REDIS_HOST'),
-    //     port: Config.get('REDIS_PORT'),
-    //     ttl: 600 * 1000,
-    //   },
-    //   files
-    // );
-    await registCacheManager('memory', {}, files);
+    await registCacheManager(
+      redisStore.create,
+      {
+        host: Config.get('REDIS_HOST'),
+        port: Config.get('REDIS_PORT'),
+        ttl: 600 * 1000,
+      },
+      files
+    );
+    // await registCacheManager('memory', {}, files);
     injectClient(client, files);
     registCommands(rest, client.user!.id, modules);
     attachCommands(client, modules);
