@@ -19,6 +19,10 @@ export default class V2Module {
     }
   }
 
+  private get controller() {
+    return V2Module.controller;
+  }
+
   @Command(
     new SlashCommandBuilder()
       .setName('servers')
