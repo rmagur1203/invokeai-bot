@@ -37,6 +37,11 @@ export default class V2Module {
     new SlashCommandBuilder()
       .setName('queue')
       .setDescription('대기열을 확인합니다.')
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('count')
+          .setDescription('대기열의 길이를 확인합니다.')
+      )
       .toJSON()
   )
   async getQueue(interaction: ChatInputCommandInteraction) {
@@ -45,18 +50,19 @@ export default class V2Module {
       GenerationConfig
     ][];
 
-    // const embed = new EmbedBuilder()
-    //   .setTitle('대기열')
-    //   .addFields(
-    //     data.map(([server, config]) => ({ name: server, value: config.prompt }))
-    //   );
+    if (interaction.options.getSubcommand() === 'count') {
+      interaction.reply(`대기열의 길이는 ${data.length}입니다.`);
+      return;
+    } else {
+      const content =
+        '```\n' +
+        data
+          .map(([server, config], index) => `${index}. ${server}`)
+          .join('\n') +
+        '\n```';
 
-    const content =
-      '```\n' +
-      data.map(([server, config], index) => `${index}. ${server}`).join('\n') +
-      '\n```';
-
-    interaction.reply(content);
+      interaction.reply(content);
+    }
   }
 
   @Command(
