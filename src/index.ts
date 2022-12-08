@@ -38,7 +38,7 @@ client.on('ready', () => {
 });
 
 async function getModules() {
-  return await glob('commands/**/([a-zA-Z-0-9_])+.module.{ts,js}', {
+  return await glob('commands/**/([a-zA-Z0-9-_])+.module.{ts,js}', {
     cwd: __dirname,
   }).then((files) => {
     return Promise.all(
@@ -51,7 +51,7 @@ async function getModules() {
 
 async function getFiles() {
   return await glob(
-    'commands/**/([a-zA-Z-_])+.{module,controller,service}.{ts,js}',
+    'commands/**/([a-zA-Z0-9-_])+.{module,controller,service}.{ts,js}',
     {
       cwd: __dirname,
     }
