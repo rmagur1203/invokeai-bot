@@ -11,7 +11,7 @@ export default class V2Service {
     sampler?: string,
     seed?: number
   ) {
-    const { data } = await axios.post('http://localhost:3000/generate', {
+    const { data } = await axios.post('http://plebea.com:2200/generate', {
       prompt,
       images,
       steps,

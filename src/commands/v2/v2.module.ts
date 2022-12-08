@@ -22,7 +22,7 @@ export default class V2Module {
       .toJSON()
   )
   async getServers(interaction: ChatInputCommandInteraction) {
-    const data = (await axios.get('http://localhost:3000/')).data as Server[];
+    const data = (await axios.get('http://plebea.com:2200/')).data as Server[];
 
     const embed = new EmbedBuilder()
       .setTitle('서버 목록')
@@ -40,7 +40,7 @@ export default class V2Module {
       .toJSON()
   )
   async getQueue(interaction: ChatInputCommandInteraction) {
-    const data = (await axios.get('http://localhost:3000/queue')).data as [
+    const data = (await axios.get('http://plebea.com:2200/queue')).data as [
       string,
       GenerationConfig
     ][];
