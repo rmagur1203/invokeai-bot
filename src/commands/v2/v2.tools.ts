@@ -1,11 +1,97 @@
 import {
   ActionRowBuilder,
   CommandInteraction,
+  EmbedBuilder,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
 import ms from 'ms';
+import { GenerationResult } from '../../invokeai';
+
+export function generationResultEmbed(result: GenerationResult) {
+  return new EmbedBuilder()
+    .setTitle('Novel')
+    .setDescription(result.metadata.image.prompt[0].prompt)
+    .setFields(
+      {
+        name: 'App ID',
+        value: result.metadata.app_id,
+        inline: true,
+      },
+      {
+        name: 'App Version',
+        value: result.metadata.app_version,
+        inline: true,
+      },
+      {
+        name: '\u200b',
+        value: '\u200b',
+        inline: true,
+      },
+      {
+        name: 'Model',
+        value: result.metadata.model,
+        inline: true,
+      },
+      {
+        name: 'Model Hash',
+        value: result.metadata.model_hash,
+        inline: true,
+      },
+      {
+        name: 'Model Weight',
+        value: result.metadata.model_weights,
+        inline: true,
+      },
+      {
+        name: 'Seed',
+        value: result.metadata.image.seed.toString(),
+        inline: true,
+      },
+      {
+        name: 'Steps',
+        value: result.metadata.image.steps.toString(),
+        inline: true,
+      },
+      {
+        name: 'CFG Scale',
+        value: result.metadata.image.cfg_scale.toString(),
+        inline: true,
+      },
+      {
+        name: 'Width',
+        value: result.metadata.image.width.toString(),
+        inline: true,
+      },
+      {
+        name: 'Height',
+        value: result.metadata.image.height.toString(),
+        inline: true,
+      },
+      {
+        name: 'Sampler',
+        value: result.metadata.image.sampler,
+        inline: true,
+      },
+      {
+        name: 'High Res Optimization',
+        value: result.metadata.image.hires_fix.toString(),
+        inline: true,
+      },
+      {
+        name: 'Type',
+        value: result.metadata.image.type,
+        inline: true,
+      },
+      {
+        name: 'mtime',
+        value: result.mtime.toString(),
+        inline: true,
+      }
+    )
+    .setURL(result.url);
+}
 
 export function generatePromptModal() {
   const prompt = new TextInputBuilder()
