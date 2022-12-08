@@ -57,7 +57,7 @@ export default class NovelService extends EventEmitter {
         this.progress?.currentIteration !== progress.currentIteration
       ) {
         let message = progress.currentStatus;
-        if (progress.isProcessing)
+        if (progress.isProcessing && progress.totalIterations > 1)
           message += ` (${progress.currentIteration}/${progress.totalIterations})`;
         this.$client.user?.setActivity(message);
       }

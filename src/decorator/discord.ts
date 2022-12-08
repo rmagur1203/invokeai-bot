@@ -35,6 +35,7 @@ export function registCommands(
         key
       ) as RESTPostAPIApplicationCommandsJSONBody;
       if (body) {
+        console.log('registCommands', body.name);
         commands.push(body);
       }
     }

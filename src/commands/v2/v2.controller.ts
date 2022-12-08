@@ -1,0 +1,52 @@
+import { ChatInputCommandInteraction, ComponentType } from 'discord.js';
+import { GenerationConfig, WIDTHS, HEIGHTS } from '../../invokeai';
+import V2Service from './v2.service';
+import { generatePromptModal, showModal } from './v2.tools';
+
+export default class V2Controller {
+  private readonly service = new V2Service();
+
+  constructor() {}
+
+  async generate(interaction: ChatInputCommandInteraction) {
+    const width = interaction.options.getNumber('width');
+    const height = interaction.options.getNumber('height');
+    const steps = interaction.options.getNumber('steps');
+    const images = interaction.options.getNumber('images');
+    const cfgScale = interaction.options.getNumber('cfg_scale');
+    const seed = interaction.options.getNumber('seed');
+
+    const options: Partial<GenerationConfig> = {};
+    if (width && WIDTHS.includes(width as any)) options.width = width as any;
+    if (height && HEIGHTS.includes(height as any))
+      options.height = height as any;
+    if (steps) options.steps = steps;
+    if (images) options.images = images;
+    if (cfgScale) options.cfg_scale = cfgScale;
+    if (seed && seed !== 0) options.seed = seed;
+
+    const promptModal = generatePromptModal();
+    const modalSubmit = await showModal(interaction, promptModal);
+    if (!modalSubmit) return;
+    const prompt = modalSubmit.fields.getField(
+      promptModal.components[0].components[0].data.custom_id!
+    );
+    if (prompt.type !== ComponentType.TextInput) return;
+
+    const uuids = await this.service.generate(
+      prompt.value,
+      options.images,
+      options.steps,
+      options.width,
+      options.height,
+      options.cfg_scale,
+      options.sampler,
+      options.seed
+    );
+
+    const content =
+      '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';
+
+    await modalSubmit.reply(content);
+  }
+}

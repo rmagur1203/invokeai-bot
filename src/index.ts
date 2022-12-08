@@ -1,4 +1,4 @@
-import { ActivityType, Client, GatewayIntentBits, REST } from 'discord.js';
+import { Client, GatewayIntentBits, REST } from 'discord.js';
 import { Config } from './config';
 import {
   attachCommands,
@@ -21,15 +21,16 @@ client.on('ready', () => {
   (async () => {
     const modules = await getModules();
     const files = await getFiles();
-    await registCacheManager(
-      redisStore.create,
-      {
-        host: Config.get('REDIS_HOST'),
-        port: Config.get('REDIS_PORT'),
-        ttl: 600 * 1000,
-      },
-      files
-    );
+    // await registCacheManager(
+    //   redisStore.create,
+    //   {
+    //     host: Config.get('REDIS_HOST'),
+    //     port: Config.get('REDIS_PORT'),
+    //     ttl: 600 * 1000,
+    //   },
+    //   files
+    // );
+    await registCacheManager('memory', {}, files);
     injectClient(client, files);
     registCommands(rest, client.user!.id, modules);
     attachCommands(client, modules);
@@ -37,7 +38,7 @@ client.on('ready', () => {
 });
 
 async function getModules() {
-  return await glob('commands/**/([a-zA-Z-_])+.module.{ts,js}', {
+  return await glob('commands/**/([a-zA-Z-0-9_])+.module.{ts,js}', {
     cwd: __dirname,
   }).then((files) => {
     return Promise.all(

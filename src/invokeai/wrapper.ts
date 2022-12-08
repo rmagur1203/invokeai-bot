@@ -1,4 +1,10 @@
-import SocketIOApi, { GenerationParameters, SystemConfig } from './api';
+import EventEmitter from 'events';
+import SocketIOApi, {
+  GenerationParameters,
+  IntermediateResult,
+  ProgressUpdate,
+  SystemConfig,
+} from './api';
 import {
   FACETOOL_TYPES,
   HEIGHTS,
@@ -9,12 +15,70 @@ import {
   WIDTHS,
 } from './constants';
 
-export default class SocketIOApiWrapper {
+export default class SocketIOApiWrapper extends EventEmitter {
   public readonly api: SocketIOApi;
   private systemConfig?: SystemConfig;
 
+  private _processing?: ProgressUpdate;
+  private _intermediate?: IntermediateResult;
+  private _statusMessage: string = 'Disconnected';
+
+  public get isProcessing(): boolean {
+    return this.isProcessing ?? false;
+  }
+  public get processing(): ProgressUpdate | undefined {
+    return this._processing;
+  }
+  public get intermediate(): IntermediateResult | undefined {
+    return this._intermediate;
+  }
+  public get statusMessage(): string {
+    return this._statusMessage;
+  }
+
+  private set processing(value: ProgressUpdate | undefined) {
+    this._processing = value;
+  }
+  private set intermediate(value: IntermediateResult | undefined) {
+    this._intermediate = value;
+  }
+  private set statusMessage(value: string) {
+    this._statusMessage = value;
+  }
+
   constructor(private readonly url: string) {
+    super();
     this.api = new SocketIOApi(url);
+    this.api.onConnect(() => {
+      this.processing = undefined;
+      this.intermediate = undefined;
+      this.statusMessage = 'Connected';
+    });
+    this.api.onProgressUpdate((progress) => {
+      this.processing = progress;
+      this.statusMessage = progress.currentStatus;
+      if (progress.isProcessing && progress.currentIteration > 1) {
+        this.statusMessage += ` (${progress.currentIteration}/${progress.totalIterations})`;
+      }
+    });
+    this.api.onIntermediateResult((result) => {
+      this.intermediate = result;
+    });
+    this.api.onProcessingCanceled(() => {
+      this.processing = undefined;
+      this.intermediate = undefined;
+      this.statusMessage = 'Processing canceled';
+    });
+    this.api.onModelChanged(() => {
+      this.processing = undefined;
+      this.intermediate = undefined;
+      this.statusMessage = 'Model Changed';
+    });
+    this.api.onDisconnect(() => {
+      this.processing = undefined;
+      this.intermediate = undefined;
+      this.statusMessage = 'Disconnected';
+    });
   }
 
   public async getSystemConfig(): Promise<SystemConfig> {
