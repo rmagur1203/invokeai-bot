@@ -42,6 +42,8 @@ export default class V2Controller {
     const images = interaction.options.getNumber('images');
     const cfgScale = interaction.options.getNumber('cfg_scale');
     const seed = interaction.options.getNumber('seed');
+    const randomPrompt =
+      interaction.options.getBoolean('random_prompt') ?? false;
 
     const options: Partial<GenerationConfig> = {};
     if (width && WIDTHS.includes(width as any)) options.width = width as any;
@@ -52,28 +54,62 @@ export default class V2Controller {
     if (cfgScale) options.cfg_scale = cfgScale;
     if (seed && seed !== 0) options.seed = seed;
 
-    const promptModal = generatePromptModal();
-    const modalSubmit = await showModal(interaction, promptModal);
-    if (!modalSubmit) return;
-    const prompt = modalSubmit.fields.getField(
-      promptModal.components[0].components[0].data.custom_id!
-    );
-    if (prompt.type !== ComponentType.TextInput) return;
+    if (randomPrompt) {
+      interaction.deferReply();
 
-    const uuids = await this.service.generate(
-      prompt.value,
-      options.images,
-      options.steps,
-      options.width,
-      options.height,
-      options.cfg_scale,
-      options.sampler,
-      options.seed
-    );
+      await this.service.updateRandomPrompt();
 
-    const content =
-      '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';
+      let uuids: string[] = [];
 
-    await modalSubmit.reply(content);
+      for (let i = 0; i < (options.images ?? 1); i++) {
+        const prompt = await this.service.getRandomPrompt();
+
+        uuids = uuids.concat(
+          await this.service.generate(
+            prompt,
+            options.images,
+            options.steps,
+            options.width,
+            options.height,
+            options.cfg_scale,
+            options.sampler,
+            options.seed
+          )
+        );
+
+        if (i % 100) await this.service.updateRandomPrompt();
+      }
+
+      const content =
+        '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';
+
+      if (content.length > 2000)
+        return interaction.editReply(content.slice(0, 2000 - 3) + '...');
+      else await interaction.editReply(content);
+    } else {
+      const promptModal = generatePromptModal();
+      const modalSubmit = await showModal(interaction, promptModal);
+      if (!modalSubmit) return;
+      const prompt = modalSubmit.fields.getField(
+        promptModal.components[0].components[0].data.custom_id!
+      );
+      if (prompt.type !== ComponentType.TextInput) return;
+
+      const uuids = await this.service.generate(
+        prompt.value,
+        options.images,
+        options.steps,
+        options.width,
+        options.height,
+        options.cfg_scale,
+        options.sampler,
+        options.seed
+      );
+
+      const content =
+        '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';
+
+      await modalSubmit.reply(content);
+    }
   }
 }

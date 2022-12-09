@@ -130,6 +130,12 @@ export default class V2Module {
           .setDescription('시드를 설정합니다. (0은 랜덤)')
           .setRequired(false)
       )
+      .addBooleanOption((option) =>
+        option
+          .setName('random_prompt')
+          .setDescription('랜덤 프롬프트를 사용할지 설정합니다.')
+          .setRequired(false)
+      )
       .toJSON()
   )
   async generate(interaction: ChatInputCommandInteraction) {

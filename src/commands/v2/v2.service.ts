@@ -41,6 +41,22 @@ export default class V2Service {
     return data as string[];
   }
 
+  private randomPromptData?: string[][];
+
+  public async updateRandomPrompt() {
+    const id = Math.floor(Math.random() * 4995) + 1;
+    const { data } = await axios.get(`https://tlnd.cc/tags/${id}.json`);
+    this.randomPromptData = data as string[][];
+  }
+
+  public async getRandomPrompt() {
+    if (this.randomPromptData === undefined) {
+      await this.updateRandomPrompt();
+    }
+    const index = Math.floor(Math.random() * this.randomPromptData!.length);
+    return this.randomPromptData![index].join(', ');
+  }
+
   public async registDebugChannel(channel: TextBasedChannel) {
     console.log('registDebugChannel', channel.id);
     this.serverSocket.on('generateResult', (result) => {
