@@ -80,6 +80,8 @@ export default class V2Controller {
         if (i % 100) await this.service.updateRandomPrompt();
       }
 
+      uuids = Array.from(new Set(uuids));
+
       const content =
         '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';
 
