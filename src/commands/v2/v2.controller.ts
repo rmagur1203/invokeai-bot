@@ -67,7 +67,7 @@ export default class V2Controller {
         uuids = uuids.concat(
           await this.service.generate(
             prompt,
-            options.images,
+            1,
             options.steps,
             options.width,
             options.height,
