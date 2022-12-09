@@ -56,7 +56,7 @@ export default class V2Service {
       })
       .then(({ data }) => streamToString(data))
       .then((data) => JSON.parse(data));
-    this.randomPromptData = data as string[][];
+    this.randomPromptData = (data as string[][][]).map((item) => item[0]);
   }
 
   public async getRandomPrompt() {
