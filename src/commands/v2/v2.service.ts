@@ -2,8 +2,9 @@ import axios from 'axios';
 import { MemoryCache } from 'cache-manager';
 import { Client, TextBasedChannel } from 'discord.js';
 import { io } from 'socket.io-client';
+import { createBrotliDecompress } from 'zlib';
 import { Inject } from '../../decorator';
-import { generationResultEmbed } from './v2.tools';
+import { generationResultEmbed, streamToString } from './v2.tools';
 
 export default class V2Service {
   @Inject('CACHE_MANAGER')
@@ -45,7 +46,15 @@ export default class V2Service {
 
   public async updateRandomPrompt() {
     const id = Math.floor(Math.random() * 4995) + 1;
-    const { data } = await axios.get(`https://tlnd.cc/tags/${id}.json`);
+    const data = await axios
+      .get(`https://tlnd.cc/tags/${id}.json`, {
+        decompress: false,
+        responseType: 'stream',
+        transformResponse(data) {
+          return data.pipe(createBrotliDecompress());
+        },
+      })
+      .then(({ data }) => streamToString(data));
     this.randomPromptData = data as string[][];
   }
 

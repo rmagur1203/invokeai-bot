@@ -7,7 +7,17 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import ms from 'ms';
+import { Stream } from 'stream';
 import { GenerationResult } from '../../invokeai';
+
+export function streamToString(stream: Stream) {
+  const chunks: Buffer[] = [];
+  return new Promise((resolve, reject) => {
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', (err) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+  });
+}
 
 export function generationResultEmbed(result: GenerationResult) {
   return new EmbedBuilder()
