@@ -54,7 +54,8 @@ export default class V2Service {
           return data.pipe(createBrotliDecompress());
         },
       })
-      .then(({ data }) => streamToString(data));
+      .then(({ data }) => streamToString(data))
+      .then((data) => JSON.parse(data));
     this.randomPromptData = data as string[][];
   }
 
