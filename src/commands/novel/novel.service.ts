@@ -547,18 +547,18 @@ export default class NovelService extends EventEmitter {
       channel.send('서버에 연결되었습니다.');
     });
 
-    this.api.onGenerationResult((result) => {
-      const embed = this.generationResultEmbed(result);
-      channel.send({
-        embeds: [embed],
-        files: [
-          {
-            name: 'novel.png',
-            attachment: this.wrapper.getImage(result.url),
-          },
-        ],
-      });
-    });
+    // this.api.onGenerationResult((result) => {
+    //   const embed = this.generationResultEmbed(result);
+    //   channel.send({
+    //     embeds: [embed],
+    //     files: [
+    //       {
+    //         name: 'novel.png',
+    //         attachment: this.wrapper.getImage(result.url),
+    //       },
+    //     ],
+    //   });
+    // });
 
     this.api.onModelChanged((model) => {
       const embed = new EmbedBuilder()
