@@ -42,6 +42,7 @@ export default class V2Controller {
     const images = interaction.options.getNumber('images');
     const cfgScale = interaction.options.getNumber('cfg_scale');
     const seed = interaction.options.getNumber('seed');
+    const highres = interaction.options.getBoolean('highres') ?? true;
     const randomPrompt =
       interaction.options.getBoolean('random_prompt') ?? false;
 
@@ -53,6 +54,7 @@ export default class V2Controller {
     if (images) options.images = images;
     if (cfgScale) options.cfg_scale = cfgScale;
     if (seed && seed !== 0) options.seed = seed;
+    if (highres) options.hires_fix = highres;
 
     if (randomPrompt) {
       interaction.deferReply();
@@ -73,7 +75,8 @@ export default class V2Controller {
             options.height,
             options.cfg_scale,
             options.sampler,
-            options.seed
+            options.seed,
+            options.hires_fix
           )
         );
 
@@ -105,7 +108,8 @@ export default class V2Controller {
         options.height,
         options.cfg_scale,
         options.sampler,
-        options.seed
+        options.seed,
+        options.hires_fix
       );
 
       const content =

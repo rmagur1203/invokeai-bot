@@ -27,7 +27,8 @@ export default class V2Service {
     height?: number,
     cfgScale?: number,
     sampler?: string,
-    seed?: number
+    seed?: number,
+    highres?: boolean
   ) {
     const { data } = await axios.post('http://plebea.com:2200/generate', {
       prompt,
@@ -38,6 +39,7 @@ export default class V2Service {
       cfg_scale: cfgScale,
       sampler,
       seed,
+      highres,
     });
     return data as string[];
   }

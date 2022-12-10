@@ -136,6 +136,14 @@ export default class V2Module {
           .setDescription('랜덤 프롬프트를 사용할지 설정합니다.')
           .setRequired(false)
       )
+      .addBooleanOption((option) =>
+        option
+          .setName('highres')
+          .setDescription(
+            '저해상도에서 먼저 생성한 뒤 고해상도 이미지를 생성합니다.'
+          )
+          .setRequired(false)
+      )
       .toJSON()
   )
   async generate(interaction: ChatInputCommandInteraction) {
