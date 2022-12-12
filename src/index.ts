@@ -22,7 +22,7 @@ client.on('ready', () => {
     const modules = await getModules();
     const files = await getFiles();
     await registCacheManager(
-      redisStore.create,
+      'memory',
       {
         host: Config.get('REDIS_HOST'),
         port: Config.get('REDIS_PORT'),

@@ -4,6 +4,7 @@ import {
   Client,
   ComponentType,
   TextChannel,
+  ThreadChannel,
 } from 'discord.js';
 import { Inject } from '../../decorator';
 import { GenerationConfig, WIDTHS, HEIGHTS } from '../../invokeai';
@@ -18,6 +19,14 @@ export default class V2Controller {
   private readonly $client!: Client;
 
   private readonly service = new V2Service();
+
+  private get threads(): ThreadChannel[] {
+    return this.service.threads;
+  }
+
+  private set threads(value: ThreadChannel[]) {
+    this.service.threads = value;
+  }
 
   constructor() {
     this.initialize();
@@ -61,26 +70,46 @@ export default class V2Controller {
 
       await this.service.updateRandomPrompt();
 
+      const threadTasks: Promise<ThreadChannel>[] = [];
       let uuids: string[] = [];
 
       for (let i = 0; i < (options.images ?? 1); i++) {
         const prompt = await this.service.getRandomPrompt();
-
-        uuids = uuids.concat(
-          await this.service.generate(
-            prompt,
-            1,
-            options.steps,
-            options.width,
-            options.height,
-            options.cfg_scale,
-            options.sampler,
-            options.seed,
-            options.hires_fix
-          )
+        const generated = await this.service.generate(
+          prompt,
+          1,
+          options.steps,
+          options.width,
+          options.height,
+          options.cfg_scale,
+          options.sampler,
+          options.seed,
+          options.hires_fix
         );
 
+        const channel = interaction.channel;
+        if (
+          !channel ||
+          channel.isDMBased() ||
+          channel.isThread() ||
+          channel.isVoiceBased()
+        )
+          return;
+        for (const uuid of generated)
+          threadTasks.push(
+            (async () => {
+              const thread = await channel.threads.create({
+                name: uuid,
+              });
+              thread.send(`Prompt: \`${prompt}\``);
+              return thread;
+            })()
+          );
+
         if (i % 100) await this.service.updateRandomPrompt();
+
+        uuids = uuids.concat(generated);
+        this.threads = this.threads.concat(await Promise.all(threadTasks));
       }
 
       uuids = Array.from(new Set(uuids));
@@ -111,6 +140,22 @@ export default class V2Controller {
         options.seed,
         options.hires_fix
       );
+
+      const channel = interaction.channel;
+      if (
+        !channel ||
+        channel.isDMBased() ||
+        channel.isThread() ||
+        channel.isVoiceBased()
+      )
+        return;
+      for (const uuid of uuids) {
+        const thread = await channel.threads.create({
+          name: uuid,
+        });
+        thread.send(`Prompt: \`${prompt.value}\``);
+        this.threads.push(thread);
+      }
 
       const content =
         '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';

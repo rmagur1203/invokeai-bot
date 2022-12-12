@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { MemoryCache } from 'cache-manager';
-import { Client, TextBasedChannel } from 'discord.js';
+import { Client, TextBasedChannel, ThreadChannel } from 'discord.js';
 import { io } from 'socket.io-client';
 import { createBrotliDecompress } from 'zlib';
 import { Inject } from '../../decorator';
@@ -15,8 +15,26 @@ export default class V2Service {
 
   public readonly serverSocket = io('http://plebea.com:2200');
 
+  public threads: ThreadChannel[] = [];
+
   constructor() {
     this.$store.get;
+    this.serverSocket.on('generateEnd', async (uuid, result) => {
+      const embed = generationResultEmbed(result);
+      const thread = this.threads.find((thread) => thread.name === uuid);
+      if (!thread) return;
+      if (thread.archived) await thread.setArchived(false);
+      await thread.send({
+        embeds: [embed],
+        files: [
+          {
+            name: 'novel.png',
+            attachment: result.url,
+          },
+        ],
+      });
+      await thread.setArchived(true);
+    });
   }
 
   async generate(
