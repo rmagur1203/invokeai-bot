@@ -40,6 +40,7 @@ export default class V2Controller {
       const channel = await this.$client.channels.fetch(channelId);
       if (channel instanceof TextChannel) {
         this.service.registDebugChannel(channel);
+        channel.send('디버그 채널로 연결되었습니다.');
       }
     }
   }
