@@ -29,6 +29,7 @@ export default class NovelController {
       const channel = await this.$client.channels.fetch(channelId);
       if (channel instanceof TextChannel) {
         this.service.registDebugChannel(channel);
+        channel.send('디버그 채널로 연결되었습니다.');
       }
     }
   }
@@ -116,9 +117,6 @@ export default class NovelController {
   }
 
   public async debug(interaction: ChatInputCommandInteraction) {
-    if (!this.api.socket.connected)
-      return interaction.reply('서버에 연결할 수 없습니다.');
-
     const channel = interaction.options.getChannel(
       'channel',
       true
