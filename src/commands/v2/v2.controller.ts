@@ -193,8 +193,8 @@ export default class V2Controller {
           const thread = await channel.threads.create({
             name: uuid,
           });
-          thread.send(`큐에 추가되었습니다.`);
-          thread.send(`Prompt: \`${prompt}\``);
+          await thread.send(`프롬프트: \`${prompt}\``);
+          await thread.send(`큐에 추가되었습니다.`);
           return thread;
         })()
       );
