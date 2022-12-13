@@ -27,7 +27,6 @@ export default class V2Service {
       if (!thread) return;
       if (thread.archived) thread.setArchived(false);
       await thread.send(`${server.name}에서 생성을 시작했습니다.`);
-      await thread.setArchived(true);
     });
     this.serverSocket.on('generateEnd', async (server, uuid, result) => {
       const embed = generationResultEmbed(result);
