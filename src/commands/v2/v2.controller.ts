@@ -195,6 +195,7 @@ export default class V2Controller {
           });
           await thread.send(`프롬프트: \`${prompt}\``);
           await thread.send(`큐에 추가되었습니다.`);
+          await thread.setArchived(true);
           return thread;
         })()
       );

@@ -22,11 +22,12 @@ export default class V2Service {
   }
 
   async InitializeEvents() {
-    this.serverSocket.on('generateStart', (server, uuid) => {
+    this.serverSocket.on('generateStart', async (server, uuid) => {
       const thread = this.threads.find((thread) => thread.name === uuid);
       if (!thread) return;
       if (thread.archived) thread.setArchived(false);
-      thread.send(`${server.name}에서 생성을 시작했습니다.`);
+      await thread.send(`${server.name}에서 생성을 시작했습니다.`);
+      await thread.setArchived(true);
     });
     this.serverSocket.on('generateEnd', async (server, uuid, result) => {
       const embed = generationResultEmbed(result);
