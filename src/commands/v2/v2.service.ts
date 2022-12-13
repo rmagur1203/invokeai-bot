@@ -18,12 +18,22 @@ export default class V2Service {
   public threads: ThreadChannel[] = [];
 
   constructor() {
-    this.$store.get;
-    this.serverSocket.on('generateEnd', async (uuid, result) => {
+    this.InitializeEvents();
+  }
+
+  async InitializeEvents() {
+    this.serverSocket.on('generateStart', (server, uuid) => {
+      const thread = this.threads.find((thread) => thread.name === uuid);
+      if (!thread) return;
+      if (thread.archived) thread.setArchived(false);
+      thread.send(`${server.name}에서 생성을 시작했습니다.`);
+    });
+    this.serverSocket.on('generateEnd', async (server, uuid, result) => {
       const embed = generationResultEmbed(result);
       const thread = this.threads.find((thread) => thread.name === uuid);
       if (!thread) return;
       if (thread.archived) await thread.setArchived(false);
+      await thread.send(`${server.name}에서 생성을 완료했습니다.`);
       await thread.send({
         embeds: [embed],
         files: [

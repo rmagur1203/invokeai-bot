@@ -71,9 +71,62 @@ export default class V2Controller {
 
       await this.service.updateRandomPrompt();
 
-      const threadTasks: Promise<ThreadChannel>[] = [];
       let uuids: string[] = [];
 
+      for (let i = 0; i < (options.images ?? 1); i++) {
+        const prompt = await this.service.getRandomPrompt();
+
+        uuids = uuids.concat(
+          await this.generateUUID(
+            interaction,
+            {
+              ...options,
+              prompt,
+              images: 1,
+            },
+            true
+          )
+        );
+
+        if (i % 100) await this.service.updateRandomPrompt();
+      }
+
+      uuids = Array.from(new Set(uuids));
+
+      let content =
+        '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';
+
+      if (content.length > 2000)
+        content = content.slice(0, 2000 - 7) + '...\n```';
+      await interaction.editReply(content);
+    } else {
+      const promptModal = generatePromptModal();
+      const modalSubmit = await showModal(interaction, promptModal);
+      if (!modalSubmit) return;
+      const prompt = modalSubmit.fields.getField(
+        promptModal.components[0].components[0].data.custom_id!
+      );
+      if (prompt.type !== ComponentType.TextInput) return;
+      options.prompt = prompt.value;
+
+      const uuids = await this.generateUUID(interaction, options);
+
+      let content =
+        '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';
+
+      if (content.length > 2000)
+        content = content.slice(0, 2000 - 7) + '...\n```';
+      await modalSubmit.reply(content);
+    }
+  }
+
+  async generateUUID(
+    interaction: ChatInputCommandInteraction,
+    options: Partial<GenerationConfig>,
+    randomPrompt = false
+  ) {
+    let uuids: string[] = [];
+    if (randomPrompt) {
       for (let i = 0; i < (options.images ?? 1); i++) {
         const prompt = await this.service.getRandomPrompt();
         const generated = await this.service.generate(
@@ -87,51 +140,21 @@ export default class V2Controller {
           options.seed,
           options.hires_fix
         );
-
-        const channel = interaction.channel;
-        if (
-          !channel ||
-          channel.isDMBased() ||
-          channel.isThread() ||
-          channel.isVoiceBased()
-        )
-          return;
-        for (const uuid of generated)
-          threadTasks.push(
-            (async () => {
-              const thread = await channel.threads.create({
-                name: uuid,
-              });
-              thread.send(`Prompt: \`${prompt}\``);
-              return thread;
-            })()
-          );
+        const threads = await this.generateThread(
+          interaction,
+          prompt,
+          generated
+        );
 
         if (i % 100) await this.service.updateRandomPrompt();
 
         uuids = uuids.concat(generated);
-        this.threads = this.threads.concat(await Promise.all(threadTasks));
+        this.threads = this.threads.concat(threads);
       }
-
-      uuids = Array.from(new Set(uuids));
-
-      const content =
-        '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';
-
-      if (content.length > 2000)
-        return interaction.editReply(content.slice(0, 2000 - 3) + '...');
-      else await interaction.editReply(content);
     } else {
-      const promptModal = generatePromptModal();
-      const modalSubmit = await showModal(interaction, promptModal);
-      if (!modalSubmit) return;
-      const prompt = modalSubmit.fields.getField(
-        promptModal.components[0].components[0].data.custom_id!
-      );
-      if (prompt.type !== ComponentType.TextInput) return;
-
-      const uuids = await this.service.generate(
-        prompt.value,
+      if (!options.prompt) return [];
+      uuids = await this.service.generate(
+        options.prompt,
         options.images,
         options.steps,
         options.width,
@@ -141,27 +164,40 @@ export default class V2Controller {
         options.seed,
         options.hires_fix
       );
-
-      const channel = interaction.channel;
-      if (
-        !channel ||
-        channel.isDMBased() ||
-        channel.isThread() ||
-        channel.isVoiceBased()
-      )
-        return;
-      for (const uuid of uuids) {
-        const thread = await channel.threads.create({
-          name: uuid,
-        });
-        thread.send(`Prompt: \`${prompt.value}\``);
-        this.threads.push(thread);
-      }
-
-      const content =
-        '```md\n' + uuids.map((x, i) => `${i}. ${x}`).join('\n') + '\n```';
-
-      await modalSubmit.reply(content);
+      this.threads = await this.generateThread(
+        interaction,
+        options.prompt,
+        uuids
+      );
     }
+    return uuids;
+  }
+
+  async generateThread(
+    interaction: ChatInputCommandInteraction,
+    prompt: string,
+    uuids: string[]
+  ) {
+    const channel = interaction.channel;
+    if (
+      !channel ||
+      channel.isDMBased() ||
+      channel.isThread() ||
+      channel.isVoiceBased()
+    )
+      return [];
+    const threadTasks: Promise<ThreadChannel>[] = [];
+    for (const uuid of uuids)
+      threadTasks.push(
+        (async () => {
+          const thread = await channel.threads.create({
+            name: uuid,
+          });
+          thread.send(`큐에 추가되었습니다.`);
+          thread.send(`Prompt: \`${prompt}\``);
+          return thread;
+        })()
+      );
+    return await Promise.all(threadTasks);
   }
 }
