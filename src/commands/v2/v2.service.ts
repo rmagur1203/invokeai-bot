@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import { createBrotliDecompress } from 'zlib';
 import { Inject } from '../../decorator';
 import { generationResultEmbed, streamToString } from './v2.tools';
+import { SERVER_URL } from './v2.constant';
 
 export default class V2Service {
   @Inject('CACHE_MANAGER')
@@ -13,7 +14,7 @@ export default class V2Service {
   @Inject('DISCORD_CLIENT')
   private readonly $client!: Client;
 
-  public readonly serverSocket = io('http://plebea.com:2200');
+  public readonly serverSocket = io(SERVER_URL);
 
   public threads: ThreadChannel[] = [];
 
@@ -58,7 +59,7 @@ export default class V2Service {
     seed?: number,
     highres?: boolean
   ) {
-    const { data } = await axios.post('http://plebea.com:2200/generate', {
+    const { data } = await axios.post(`${SERVER_URL}/generate`, {
       prompt,
       images,
       steps,

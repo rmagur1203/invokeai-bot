@@ -8,6 +8,7 @@ import { Command, Module } from '../../decorator';
 import { WIDTHS, HEIGHTS, GenerationConfig } from '../../invokeai';
 import V2Controller from './v2.controller';
 import { Server } from './v2.interfaces';
+import { SERVER_URL } from './v2.constant';
 
 @Module()
 export default class V2Module {
@@ -30,7 +31,7 @@ export default class V2Module {
       .toJSON()
   )
   async getServers(interaction: ChatInputCommandInteraction) {
-    const data = (await axios.get('http://plebea.com:2200/')).data as Server[];
+    const data = (await axios.get(`${SERVER_URL}`)).data as Server[];
 
     const embed = new EmbedBuilder()
       .setTitle('서버 목록')
@@ -56,7 +57,7 @@ export default class V2Module {
       .toJSON()
   )
   async getQueue(interaction: ChatInputCommandInteraction) {
-    const data = (await axios.get('http://plebea.com:2200/queue')).data as [
+    const data = (await axios.get(`${SERVER_URL}/queue`)).data as [
       string,
       GenerationConfig
     ][];
