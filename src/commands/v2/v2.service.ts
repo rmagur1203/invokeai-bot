@@ -23,6 +23,9 @@ export default class V2Service {
   }
 
   async InitializeEvents() {
+    this.serverSocket.on('connect', () => {
+      console.log(`Connected to server ${SERVER_URL}`);
+    });
     this.serverSocket.on('generateStart', async (server, uuid) => {
       const thread = this.threads.find((thread) => thread.name === uuid);
       if (!thread) return;
@@ -45,6 +48,9 @@ export default class V2Service {
         ],
       });
       await thread.setArchived(true);
+    });
+    this.serverSocket.on('disconnect', () => {
+      console.log(`Disconnected from server ${SERVER_URL}`);
     });
   }
 
